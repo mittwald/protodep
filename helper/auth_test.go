@@ -8,14 +8,14 @@ import (
 
 func TestGetRepositoryURLWithSSH(t *testing.T) {
 	target := &AuthProviderWithSSH{}
-	actual := target.GetRepositoryURL("github.com/stormcat24/protodep")
+	actual := target.GetRepositoryURL("github.com/mittwald/protodep")
 
-	require.Equal(t, "ssh://github.com/stormcat24/protodep.git", actual)
+	require.Equal(t, "ssh://github.com/mittwald/protodep.git", actual)
 }
 
 func TestGetRepositoryURLHTTPS(t *testing.T) {
 	target := &AuthProviderHTTPS{}
-	actual := target.GetRepositoryURL("github.com/stormcat24/protodep")
+	actual := target.GetRepositoryURL("github.com/mittwald/protodep")
 
-	require.Equal(t, "https://github.com/stormcat24/protodep.git", actual)
+	require.Equal(t, "https://github.com/mittwald/protodep.git", actual)
 }

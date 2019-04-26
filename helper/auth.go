@@ -3,7 +3,7 @@ package helper
 import (
 	"fmt"
 
-	"github.com/stormcat24/protodep/logger"
+	"github.com/mittwald/protodep/logger"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/ssh"
 )

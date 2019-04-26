@@ -7,7 +7,7 @@ import (
 
 	"github.com/golang/mock/gomock"
 	"github.com/mitchellh/go-homedir"
-	"github.com/stormcat24/protodep/helper"
+	"github.com/mittwald/protodep/helper"
 	"github.com/stretchr/testify/require"
 )
 

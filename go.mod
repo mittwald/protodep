@@ -18,7 +18,6 @@ require (
 	github.com/spf13/cobra v0.0.3
 	github.com/spf13/pflag v1.0.3 // indirect
 	github.com/src-d/go-git-fixtures v3.5.0+incompatible // indirect
-	github.com/stormcat24/protodep v0.0.0-20180221054636-1a4a0150a546
 	github.com/stretchr/objx v0.2.0 // indirect
 	github.com/stretchr/testify v1.3.0
 	github.com/xanzy/ssh-agent v0.2.1 // indirect

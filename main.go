@@ -1,6 +1,6 @@
 package main
 
-import "github.com/stormcat24/protodep/cmd"
+import "github.com/mittwald/protodep/cmd"
 
 func main() {
 	cmd.Execute()

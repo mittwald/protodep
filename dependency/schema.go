@@ -18,12 +18,7 @@ type ProtoDepDependency struct {
 }
 
 func (d *ProtoDepDependency) Repository() string {
-	tokens := strings.Split(d.Target, "/")
-	if len(tokens) > 3 {
-		return strings.Join(tokens[0:3], "/")
-	} else {
-		return d.Target
-	}
+	return d.Target
 }
 
 func (d *ProtoDepDependency) Directory() string {

@@ -3,7 +3,7 @@ protodep
 
 [![Build Status](https://travis-ci.com/mittwald/protodep.svg?branch=master)](https://travis-ci.com/mittwald/protodep)
 [![Language](https://img.shields.io/badge/language-go-brightgreen.svg?style=flat)](https://golang.org/)
-[![issues](https://img.shields.io/github/issues/mittwald/protodep.svg?style=flat)](https://github.com/stormcat24/protodep/issues?state=open)
+[![issues](https://img.shields.io/github/issues/mittwald/protodep.svg?style=flat)](https://github.com/mittwald/protodep/issues?state=open)
 [![License: MIT](https://img.shields.io/badge/license-MIT-orange.svg)](LICENSE)
 [![GoDoc](https://godoc.org/github.com/mittwald/protodep?status.png)](https://godoc.org/github.com/mittwald/protodep)
 
@@ -44,7 +44,7 @@ Proto dependency management is defined in `protodep.toml`.
 proto_outdir = "./proto"
 
 [[dependencies]]
-  target = "github.com/stormcat24/protodep/protobuf"
+  target = "github.com/mittwald/protodep/protobuf"
   branch = "master"
 
 [[dependencies]]

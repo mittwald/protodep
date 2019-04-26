@@ -6,9 +6,9 @@ import (
 	"path/filepath"
 
 	"github.com/pkg/errors"
-	"github.com/stormcat24/protodep/dependency"
-	"github.com/stormcat24/protodep/helper"
-	"github.com/stormcat24/protodep/logger"
+	"github.com/mittwald/protodep/dependency"
+	"github.com/mittwald/protodep/helper"
+	"github.com/mittwald/protodep/logger"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )

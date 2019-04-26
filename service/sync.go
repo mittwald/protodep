@@ -6,10 +6,10 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/stormcat24/protodep/dependency"
-	"github.com/stormcat24/protodep/helper"
-	"github.com/stormcat24/protodep/logger"
-	"github.com/stormcat24/protodep/repository"
+	"github.com/mittwald/protodep/dependency"
+	"github.com/mittwald/protodep/helper"
+	"github.com/mittwald/protodep/logger"
+	"github.com/mittwald/protodep/repository"
 )
 
 type protoResource struct {

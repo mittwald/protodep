@@ -7,9 +7,9 @@ import (
 
 	"github.com/mitchellh/go-homedir"
 	"github.com/spf13/cobra"
-	"github.com/stormcat24/protodep/helper"
-	"github.com/stormcat24/protodep/logger"
-	"github.com/stormcat24/protodep/service"
+	"github.com/mittwald/protodep/helper"
+	"github.com/mittwald/protodep/logger"
+	"github.com/mittwald/protodep/service"
 )
 
 var (
