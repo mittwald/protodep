@@ -2,7 +2,7 @@ export PATH := ${GOPATH}/bin:${PATH}
 BUILD_ARGS := -a -installsuffix cgo -ldflags="-w -s"
 BINARY_NAME := protodep
 
-.PHONY: all dep compile test
+.PHONY: all dep test vet compile goreleaser
 
 all: dep compile
 
