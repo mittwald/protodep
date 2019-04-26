@@ -27,11 +27,11 @@ $ go get github.com/mittwald/protodep
 
 Support as follows:
 
-* protodep_0.1.0_linux_x86_64.tar.gz
-* protodep_0.1.0_macOS_x86_64.tar.gz
+* protodep_0.1.1_linux_x86_64.tar.gz
+* protodep_0.1.1_macOS_x86_64.tar.gz
 
 ```bash
-$ curl --silent -SL https://github.com/mittwald/protodep/releases/download/v0.1.0/protodep_0.1.0_$(uname)_x86_64.tar.gz | tar -xvzf - -C /usr/local/bin/ protodep
+$ curl --silent -SL https://github.com/mittwald/protodep/releases/download/v0.1.1/protodep_0.1.1_$(uname)_x86_64.tar.gz | tar -xvzf - -C /usr/local/bin/ protodep
 ```
 
 ## Usage
