@@ -10,8 +10,13 @@ dep:
 	go mod download
 
 test:
-	go test
+	go test -v ./...
+
+vet:
+	go vet ./...
 
 compile:
 	go build $(BUILD_ARGS) -o $(BINARY_NAME)
-	chmod +x $(BINARY_NAME)
+
+goreleaser:
+	curl -sL https://git.io/goreleaser | bash -s -- --snapshot --skip-publish --rm-dist

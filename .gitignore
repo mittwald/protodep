@@ -1,2 +1,4 @@
-.idea
+.idea/
 protodep
+dist/
+service/protodep.lock
