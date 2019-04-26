@@ -31,7 +31,7 @@ Support as follows:
 * protodep_0.1.1_Darwin_x86_64.tar.gz
 
 ```bash
-$ curl --silent -SL https://github.com/mittwald/protodep/releases/download/v0.1.1/protodep_0.1.1_$(uname)_x86_64.tar.gz | tar -xvzf - -C /usr/local/bin/ protodep
+$ curl --silent -SL "https://github.com/mittwald/protodep/releases/download/v0.1.1/protodep_0.1.1_$(uname)_x86_64.tar.gz" | tar -xvzf - -C /usr/local/bin/ protodep
 ```
 
 ## Usage
