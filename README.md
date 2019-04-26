@@ -31,7 +31,7 @@ Support as follows:
 * protodep_0.1.0_macOS_x86_64.tar.gz
 
 ```bash
-$ curl --silent -SL https://github.com/mittwald/protodep/releases/download/v0.1.0/protodep_0.1.0_macOS_x86_64.tar.gz | tar -xvzf - -C /usr/local/bin/ protodep
+$ curl --silent -SL https://github.com/mittwald/protodep/releases/download/v0.1.0/protodep_0.1.0_$(uname)_x86_64.tar.gz | tar -xvzf - -C /usr/local/bin/ protodep
 ```
 
 ## Usage
@@ -44,7 +44,7 @@ Proto dependency management is defined in `protodep.toml`.
 proto_outdir = "./proto"
 
 [[dependencies]]
-  target = "github.com/stormcat24/protodep/protobuf"
+  target = "github.com/stormcat24/protodep/protobuf"e
   branch = "master"
 
 [[dependencies]]
