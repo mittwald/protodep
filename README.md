@@ -44,7 +44,7 @@ Proto dependency management is defined in `protodep.toml`.
 proto_outdir = "./proto"
 
 [[dependencies]]
-  target = "github.com/stormcat24/protodep/protobuf"e
+  target = "github.com/stormcat24/protodep/protobuf"
   branch = "master"
 
 [[dependencies]]
