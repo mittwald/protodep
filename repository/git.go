@@ -5,10 +5,10 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/pkg/errors"
 	"github.com/mittwald/protodep/dependency"
 	"github.com/mittwald/protodep/helper"
 	"github.com/mittwald/protodep/logger"
+	"github.com/pkg/errors"
 	"gopkg.in/src-d/go-git.v4"
 	"gopkg.in/src-d/go-git.v4/plumbing"
 )

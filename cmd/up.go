@@ -6,10 +6,10 @@ import (
 	"strings"
 
 	"github.com/mitchellh/go-homedir"
-	"github.com/spf13/cobra"
 	"github.com/mittwald/protodep/helper"
 	"github.com/mittwald/protodep/logger"
 	"github.com/mittwald/protodep/service"
+	"github.com/spf13/cobra"
 )
 
 var (
