@@ -2,3 +2,4 @@
 protodep
 dist/
 service/protodep.lock
+proto/

@@ -32,13 +32,13 @@ var upCmd = &cobra.Command{
 		}
 		logger.Info("force update = %t", isForceUpdate)
 
-		identityFile, err := cmd.Flags().GetString("identity-file")
+		identityFile, err := cmd.Flags().GetString("ssh-identity-file")
 		if err != nil {
 			return err
 		}
 		logger.Info("identity file = %s", identityFile)
 
-		password, err := cmd.Flags().GetString("password")
+		password, err := cmd.Flags().GetString("ssh-identity-file-passphrase")
 		if err != nil {
 			return err
 		}
@@ -56,7 +56,12 @@ var upCmd = &cobra.Command{
 			return err
 		}
 
-		authProvider = helper.NewAuthProvider(filepath.Join(homeDir, ".ssh", identityFile), password)
+		idFilePath := filepath.Join(homeDir, ".ssh", identityFile)
+		if _, err := os.Stat(idFilePath); os.IsNotExist(err) {
+			idFilePath = ""
+		}
+
+		authProvider = helper.NewAuthProvider(idFilePath, password)
 		updateService := service.NewSync(authProvider, homeDir, pwd, pwd)
 		return updateService.Resolve(isForceUpdate)
 	},
@@ -64,6 +69,7 @@ var upCmd = &cobra.Command{
 
 func initDepCmd() {
 	upCmd.PersistentFlags().BoolP("force", "f", false, "update locked file and .proto vendors")
-	upCmd.PersistentFlags().StringP("identity-file", "i", "id_rsa", "set the identity file for SSH")
-	upCmd.PersistentFlags().StringP("password", "p", "", "set the password for SSH")
+	upCmd.PersistentFlags().BoolP("https-only", "o", false, "use https only for downloading dependencies")
+	upCmd.PersistentFlags().StringP("ssh-identity-file", "i", "id_rsa", "set name identity file for ssh-connection")
+	upCmd.PersistentFlags().StringP("ssh-identity-file-passphrase", "p", "", "set the passphrase for ssh-identity-file")
 }

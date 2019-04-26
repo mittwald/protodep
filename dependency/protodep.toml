@@ -1,15 +1,15 @@
 proto_outdir = "./proto"
 
 [[dependencies]]
-  target = "github.com/google/protobuf/examples"
+  target = "github.com/protocolbuffers/protobuf"
   branch = "master"
 
 [[dependencies]]
-  target = "github.com/grpc-ecosystem/grpc-gateway/examples/examplepb"
+  target = "github.com/grpc-ecosystem/grpc-gateway"
   revision = "v1.2.2"
   path = "grpc-gateway/examplepb"
 
 [[dependencies]]
-  target = "github.com/kubernetes/helm/_proto/hapi"
+  target = "github.com/kubernetes/helm"
   revision = "v2.8.1"
   ignores = ["./release", "./rudder", "./services", "./version"]

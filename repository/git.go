@@ -115,7 +115,7 @@ func (r *GitHubRepository) Open() (*OpenedRepository, error) {
 		}
 	}
 
-	commiter, err := rep.Log(&git.LogOptions{})
+	commiter, err := rep.Log(&git.LogOptions{All: true})
 	if err != nil {
 		return nil, errors.Wrap(err, "get commit is failed")
 	}
