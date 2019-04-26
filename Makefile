@@ -1,47 +1,22 @@
-APP=protodep
-BASE_PACKAGE=github.com/stormcat24/$(APP)
-SERIAL_PACKAGES= \
-		 cmd \
-		 dependency \
-		 helper \
-		 repository \
-		 service
-TARGET_SERIAL_PACKAGES=$(addprefix test-,$(SERIAL_PACKAGES))
+export PATH := ${GOPATH}/bin:${PATH}
+BUILD_ARGS := -a -installsuffix cgo -ldflags="-w -s"
+BINARY_NAME := protodep
 
-deps-build:
-		go get -u github.com/golang/dep/cmd/dep
-		go get github.com/golang/lint/golint
+.PHONY: all dep test vet compile goreleaser
 
-deps: deps-build
-		dep ensure
+all: dep compile
 
-deps-update: deps-build
-		rm -rf ./vendor
-		rm -rf Gopkg.lock
-		dep ensure -update
+dep:
+	go mod download
 
-define build-artifact
-		GOOS=$(1) GOARCH=$(2) go build -o artifacts/$(APP)
-		cd artifacts && tar cvzf $(APP)_$(1)_$(2).tar.gz $(APP)
-		rm ./artifacts/$(APP)
-		@echo [INFO]build success: $(1)_$(2)
-endef
+test:
+	go test -v ./...
 
-build-all:
-		$(call build-artifact,linux,386)
-		$(call build-artifact,linux,amd64)
-		$(call build-artifact,linux,arm)
-		$(call build-artifact,linux,arm64)
-		$(call build-artifact,darwin,amd64)
+vet:
+	go vet ./...
 
-build:
-		go build -ldflags="-w -s" -o bin/protodep main.go
+compile:
+	go build $(BUILD_ARGS) -o $(BINARY_NAME)
 
-test: $(TARGET_SERIAL_PACKAGES)
-
-$(TARGET_SERIAL_PACKAGES): test-%:
-		go test $(BASE_PACKAGE)/$(*)
-
-mock:
-	go get github.com/golang/mock/mockgen
-	mockgen -source helper/auth.go -package helper -destination helper/auth_mock.go
+goreleaser:
+	curl -sL https://git.io/goreleaser | bash -s -- --snapshot --skip-publish --rm-dist
