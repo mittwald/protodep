@@ -9,33 +9,40 @@ import (
 )
 
 type AuthProvider interface {
-	GetRepositoryURL(reponame string) string
+	GetRepositoryURL(repoName string) string
 	AuthMethod() transport.AuthMethod
 }
 
 type AuthProviderWithSSH struct {
 	pemFile  string
 	password string
+	port     string
 }
 
 type AuthProviderHTTPS struct {
+	username string
+	password string
 }
 
-func NewAuthProvider(pemFile, password string) AuthProvider {
-	if pemFile != "" {
-		logger.Info("use SSH protocol")
-		return &AuthProviderWithSSH{
-			pemFile:  pemFile,
-			password: password,
-		}
-	} else {
-		logger.Info("use HTTP/HTTPS protocol")
-		return &AuthProviderHTTPS{}
+func NewHTTPSAuthProvider(username, password string) AuthProvider {
+	logger.Info("use HTTP/HTTPS protocol")
+	return &AuthProviderHTTPS{
+		username: username,
+		password: password,
 	}
 }
 
-func (p *AuthProviderWithSSH) GetRepositoryURL(reponame string) string {
-	ep, err := transport.NewEndpoint("ssh://" + reponame + ".git")
+func NewSSHAuthProvider(pemFile, password, port string) AuthProvider {
+	logger.Info("use SSH protocol")
+	return &AuthProviderWithSSH{
+		pemFile:  pemFile,
+		password: password,
+		port:     port,
+	}
+}
+
+func (p *AuthProviderWithSSH) GetRepositoryURL(repoName string) string {
+	ep, err := transport.NewEndpoint("ssh://" + repoName + ".git" + ":" + p.port)
 	if err != nil {
 		panic(err)
 	}
@@ -50,8 +57,14 @@ func (p *AuthProviderWithSSH) AuthMethod() transport.AuthMethod {
 	return am
 }
 
-func (p *AuthProviderHTTPS) GetRepositoryURL(reponame string) string {
-	return fmt.Sprintf("https://%s.git", reponame)
+func (p *AuthProviderHTTPS) GetRepositoryURL(repoName string) string {
+	var url string
+	if len(p.username) > 0 && len(p.password) > 0 {
+		url = fmt.Sprintf("https://%s:%s@%s.git", p.username, p.password, repoName)
+	} else {
+		url = fmt.Sprintf("https://%s.git", repoName)
+	}
+	return url
 }
 
 func (p *AuthProviderHTTPS) AuthMethod() transport.AuthMethod {
