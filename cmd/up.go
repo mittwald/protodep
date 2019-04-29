@@ -38,6 +38,12 @@ var upCmd = &cobra.Command{
 		}
 		logger.Info("force update = %t", isForceUpdate)
 
+		httpsOnly, err := cmd.Flags().GetBool(httpsOnlyFlag)
+		if err != nil {
+			return err
+		}
+		logger.Info("https only = %s", httpsOnly)
+
 		pwd, err := os.Getwd()
 		if err != nil {
 			return err
@@ -80,7 +86,7 @@ var upCmd = &cobra.Command{
 			return err
 		}
 
-		if len(idFilePath) > 0 {
+		if len(idFilePath) > 0 && !httpsOnly {
 			authProvider = helper.NewSSHAuthProvider(idFilePath, passphrase, sshPort)
 			logger.Info("identity file = %s", idFilePath)
 			if passphrase != "" {
