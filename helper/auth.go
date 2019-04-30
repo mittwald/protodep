@@ -75,7 +75,7 @@ func (p *AuthProviderHTTPS) GetRepositoryURL(repoName string) string {
 	homeDir, _ := os.UserHomeDir()
 	gitConfig := homeDir + "/.git-credentials"
 	if _, err := os.Stat(gitConfig); err != nil {
-		logger.Error("%v", err)
+		logger.Info("... no git-credentials for repo found")
 		return defaultRepo
 	}
 
@@ -95,7 +95,7 @@ func (p *AuthProviderHTTPS) GetRepositoryURL(repoName string) string {
 		if splitEntryLen > 2 {
 			continue
 		}
-		gitConfigHostname := splitEntry[splitEntryLen - 1]
+		gitConfigHostname := splitEntry[splitEntryLen-1]
 
 		if gitConfigHostname != repoHostname {
 			continue
