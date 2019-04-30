@@ -4,13 +4,13 @@ import (
 	"github.com/mittwald/protodep/logger"
 	"gopkg.in/src-d/go-git.v4/plumbing/format/config"
 	"os"
+	"strings"
 )
 
 func GitConfig(target string) string {
+	target = strings.TrimSuffix(target, "/")
 	cfg := config.New()
-
 	home, err := os.UserHomeDir()
-
 	r, err := os.Open(home + "/.gitconfig")
 	if err != nil {
 		logger.Error("%v", err)
@@ -20,10 +20,12 @@ func GitConfig(target string) string {
 	if err != nil {
 		logger.Error("%v", err)
 	}
-
 	for _, subsec := range cfg.Section("url").Subsections {
-		if subsec.Options.Get("insteadOf") == target {
-			return subsec.Name
+		if strings.TrimSuffix(subsec.Options.Get("insteadOf"), "/") == target {
+			if strings.HasSuffix(subsec.Name, "/") {
+				return subsec.Name
+			}
+			return subsec.Name + "/"
 		}
 	}
 	return ""

@@ -68,6 +68,7 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 		repoHostnameWithScheme := repoURL.Scheme + "://" + repoURL.Hostname()
 		isSshGitRepo := helper.GitConfig(repoHostnameWithScheme)
 		if len(isSshGitRepo) > 0 {
+			dep.Target = isSshGitRepo
 			authProvider = s.authProviderSSH
 		} else {
 			authProvider = s.authProviderHTTPS
