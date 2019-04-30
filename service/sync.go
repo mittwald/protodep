@@ -22,18 +22,20 @@ type Sync interface {
 }
 
 type SyncImpl struct {
-	authProvider  helper.AuthProvider
-	userHomeDir   string
-	targetDir     string
-	outputRootDir string
+	authProviderSSH   helper.AuthProvider
+	authProviderHTTPS helper.AuthProvider
+	userHomeDir       string
+	targetDir         string
+	outputRootDir     string
 }
 
-func NewSync(authProvider helper.AuthProvider, userHomeDir string, targetDir string, outputRootDir string) Sync {
+func NewSync(authProviderSSH, authProviderHTTPS helper.AuthProvider, userHomeDir string, targetDir string, outputRootDir string) Sync {
 	return &SyncImpl{
-		authProvider:  authProvider,
-		userHomeDir:   userHomeDir,
-		targetDir:     targetDir,
-		outputRootDir: outputRootDir,
+		authProviderSSH:   authProviderSSH,
+		authProviderHTTPS: authProviderHTTPS,
+		userHomeDir:       userHomeDir,
+		targetDir:         targetDir,
+		outputRootDir:     outputRootDir,
 	}
 }
 
@@ -53,18 +55,26 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 		return err
 	}
 
+	var authProvider helper.AuthProvider
 	for _, dep := range protodep.Dependencies {
-		gitrepo := repository.NewGitRepository(protodepDir, dep, s.authProvider)
 
-		repo, err := gitrepo.Open()
+		isSshGitRepo := helper.GitConfig("https://" + dep.Target)
+		if len(isSshGitRepo) > 0 {
+			authProvider = s.authProviderSSH
+		} else {
+			authProvider = s.authProviderHTTPS
+		}
+		gitRepo := repository.NewGitRepository(protodepDir, dep, authProvider)
+
+		repo, err := gitRepo.Open()
 		if err != nil {
 			return err
 		}
 
 		sources := make([]protoResource, 0)
 
-		protoRootDir := gitrepo.ProtoRootDir()
-		filepath.Walk(protoRootDir, func(path string, info os.FileInfo, err error) error {
+		protoRootDir := gitRepo.ProtoRootDir()
+		_ = filepath.Walk(protoRootDir, func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}

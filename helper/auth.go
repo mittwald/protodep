@@ -49,7 +49,7 @@ func NewSSHAuthProvider(pemFile, password, port string) AuthProvider {
 func (p *AuthProviderWithSSH) GetRepositoryURL(repoName string) string {
 	hostname := strings.Split(repoName, "/")[0]
 	repoNameWithPort := strings.Replace(repoName, hostname, hostname+":"+p.port, 1)
-	ep, err := transport.NewEndpoint("ssh://" + repoNameWithPort + ".git")
+	ep, err := transport.NewEndpoint(repoNameWithPort + ".git")
 	if err != nil {
 		panic(err)
 	}

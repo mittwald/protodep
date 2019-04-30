@@ -30,8 +30,6 @@ var upCmd = &cobra.Command{
 	Use:   "up",
 	Short: "Populate .proto vendors existing protodep.toml and lock",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		var authProvider helper.AuthProvider
-
 		isForceUpdate, err := cmd.Flags().GetBool(forceUpdateFlag)
 		if err != nil {
 			return err
@@ -86,22 +84,19 @@ var upCmd = &cobra.Command{
 			return err
 		}
 
-		if len(idFilePath) > 0 && !httpsOnly {
-			authProvider = helper.NewSSHAuthProvider(idFilePath, passphrase, sshPort)
-			logger.Info("identity file = %s", idFilePath)
-			if passphrase != "" {
-				logger.Info("passphrase = %s", strings.Repeat("x", len(passphrase))) // Do not display the password.
-			}
-			logger.Info("ssh port = %s", sshPort)
-		} else {
-			authProvider = helper.NewHTTPSAuthProvider(httpsUsername, httpsPassword)
-			if len(httpsUsername) > 0 && len(httpsPassword) > 0 {
-				logger.Info("https username = %s", httpsUsername)
-				logger.Info("https password = %s", strings.Repeat("x", len(httpsPassword)))
-			}
+		authProviderSSH := helper.NewSSHAuthProvider(idFilePath, passphrase, sshPort)
+		logger.Info("identity file = %s", idFilePath)
+		if passphrase != "" {
+			logger.Info("passphrase = %s", strings.Repeat("x", len(passphrase))) // Do not display the password.
+		}
+		logger.Info("ssh port = %s", sshPort)
+		authProviderHTTPS := helper.NewHTTPSAuthProvider(httpsUsername, httpsPassword)
+		if len(httpsUsername) > 0 && len(httpsPassword) > 0 {
+			logger.Info("https username = %s", httpsUsername)
+			logger.Info("https password = %s", strings.Repeat("x", len(httpsPassword)))
 		}
 
-		updateService := service.NewSync(authProvider, homeDir, pwd, pwd)
+		updateService := service.NewSync(authProviderSSH, authProviderHTTPS, homeDir, pwd, pwd)
 		return updateService.Resolve(isForceUpdate)
 	},
 }
