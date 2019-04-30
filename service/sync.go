@@ -60,7 +60,7 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 	var authProvider helper.AuthProvider
 	for _, dep := range protodep.Dependencies {
 
-		repoURL, err := url.Parse(dep.Target)
+		repoURL, err := url.Parse("https://" + dep.Target)
 		if err != nil {
 			return err
 		}
@@ -72,7 +72,7 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 		} else {
 			authProvider = s.authProviderHTTPS
 		}
-		
+
 		logger.Info("using %v as authentication for repo %s", reflect.TypeOf(authProvider), dep.Target)
 		gitRepo := repository.NewGitRepository(protodepDir, dep, authProvider)
 
