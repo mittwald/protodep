@@ -53,7 +53,7 @@ func (r *GitHubRepository) Open() (*OpenedRepository, error) {
 	var rep *git.Repository
 
 	if stat, err := os.Stat(repopath); err == nil && stat.IsDir() {
-		spinner := logger.InfoWithSpinner("Getting %s ", reponame)
+		spinner := logger.InfoWithSpinner("Getting in existing dir %s ", reponame)
 
 		rep, err = git.PlainOpen(repopath)
 		if err != nil {
@@ -73,7 +73,7 @@ func (r *GitHubRepository) Open() (*OpenedRepository, error) {
 		spinner.Finish()
 
 	} else {
-		spinner := logger.InfoWithSpinner("Getting %s ", reponame)
+		spinner := logger.InfoWithSpinner("Getting new Repo %s ", reponame)
 		rep, err = git.PlainClone(repopath, false, &git.CloneOptions{
 			Auth: r.authProvider.AuthMethod(),
 			URL:  r.authProvider.GetRepositoryURL(reponame),

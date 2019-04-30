@@ -1,7 +1,12 @@
 package helper
 
 import (
+	"bufio"
 	"fmt"
+	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
+	"net/url"
+	"os"
+	"strings"
 
 	"github.com/mittwald/protodep/logger"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport"
@@ -42,7 +47,9 @@ func NewSSHAuthProvider(pemFile, password, port string) AuthProvider {
 }
 
 func (p *AuthProviderWithSSH) GetRepositoryURL(repoName string) string {
-	ep, err := transport.NewEndpoint("ssh://" + repoName + ".git" + ":" + p.port)
+	hostname := strings.Split(repoName, "/")[0]
+	repoNameWithPort := strings.Replace(repoName, hostname, hostname+":"+p.port, 1)
+	ep, err := transport.NewEndpoint("ssh://" + repoNameWithPort + ".git")
 	if err != nil {
 		panic(err)
 	}
@@ -58,16 +65,71 @@ func (p *AuthProviderWithSSH) AuthMethod() transport.AuthMethod {
 }
 
 func (p *AuthProviderHTTPS) GetRepositoryURL(repoName string) string {
-	var url string
+	var defaultRepo = fmt.Sprintf("https://%s.git", repoName)
+	repoHostname := strings.Split(repoName, "/")[0]
+
 	if len(p.username) > 0 && len(p.password) > 0 {
-		url = fmt.Sprintf("https://%s:%s@%s.git", p.username, p.password, repoName)
-	} else {
-		url = fmt.Sprintf("https://%s.git", repoName)
+		return defaultRepo
 	}
-	return url
+
+	homeDir, _ := os.UserHomeDir()
+	gitConfig := homeDir + "/.git-credentials"
+	if _, err := os.Stat(gitConfig); err != nil {
+		logger.Error("%v", err)
+		return defaultRepo
+	}
+
+	file, err := os.Open(gitConfig)
+	if err != nil {
+		logger.Error("%v", err)
+		return defaultRepo
+	}
+
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		fullCredLine := scanner.Text()
+
+		splitEntry := strings.Split(fullCredLine, "@")
+		splitEntryLen := len(splitEntry)
+		if splitEntryLen > 2 {
+			continue
+		}
+		gitConfigHostname := splitEntry[splitEntryLen - 1]
+
+		if gitConfigHostname != repoHostname {
+			continue
+		}
+
+		u, err := url.Parse(fullCredLine)
+		if err != nil {
+			logger.Error("%v", err)
+			continue
+		}
+
+		if len(u.User.String()) <= 0 {
+			continue
+		}
+
+		hostnameWithCreds := fmt.Sprintf("%s@%s", u.User.String(), repoHostname)
+		repoUrlWithCreds := strings.Replace(defaultRepo, repoHostname, hostnameWithCreds, 1)
+		return repoUrlWithCreds
+	}
+
+	if err := scanner.Err(); err != nil {
+		logger.Error("%v", err)
+		return defaultRepo
+	}
+
+	return defaultRepo
 }
 
 func (p *AuthProviderHTTPS) AuthMethod() transport.AuthMethod {
-	// nil is ok.
+	if len(p.username) > 0 && len(p.password) > 0 {
+		return &http.BasicAuth{
+			Username: p.username,
+			Password: p.password,
+		}
+	}
 	return nil
 }

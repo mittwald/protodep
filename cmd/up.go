@@ -42,7 +42,7 @@ var upCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		logger.Info("https only = %s", httpsOnly)
+		logger.Info("https only = %t", httpsOnly)
 
 		pwd, err := os.Getwd()
 		if err != nil {
@@ -97,7 +97,7 @@ var upCmd = &cobra.Command{
 			authProvider = helper.NewHTTPSAuthProvider(httpsUsername, httpsPassword)
 			if len(httpsUsername) > 0 && len(httpsPassword) > 0 {
 				logger.Info("https username = %s", httpsUsername)
-				logger.Info("https password = %s", httpsPassword)
+				logger.Info("https password = %s", strings.Repeat("x", len(httpsPassword)))
 			}
 		}
 
