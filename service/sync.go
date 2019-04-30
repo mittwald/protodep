@@ -4,6 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 
 	"github.com/mittwald/protodep/dependency"
@@ -64,6 +65,7 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 		} else {
 			authProvider = s.authProviderHTTPS
 		}
+		logger.Info("using %v as authentication for repo %s", reflect.TypeOf(authProvider), dep.Target)
 		gitRepo := repository.NewGitRepository(protodepDir, dep, authProvider)
 
 		repo, err := gitRepo.Open()
