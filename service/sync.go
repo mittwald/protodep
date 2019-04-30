@@ -2,6 +2,7 @@ package service
 
 import (
 	"io/ioutil"
+	"net/url"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -59,12 +60,19 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 	var authProvider helper.AuthProvider
 	for _, dep := range protodep.Dependencies {
 
-		isSshGitRepo := helper.GitConfig("https://" + dep.Target)
+		repoURL, err := url.Parse(dep.Target)
+		if err != nil {
+			return err
+		}
+
+		repoHostnameWithScheme := repoURL.Scheme + "://" + repoURL.Hostname()
+		isSshGitRepo := helper.GitConfig(repoHostnameWithScheme)
 		if len(isSshGitRepo) > 0 {
 			authProvider = s.authProviderSSH
 		} else {
 			authProvider = s.authProviderHTTPS
 		}
+		
 		logger.Info("using %v as authentication for repo %s", reflect.TypeOf(authProvider), dep.Target)
 		gitRepo := repository.NewGitRepository(protodepDir, dep, authProvider)
 

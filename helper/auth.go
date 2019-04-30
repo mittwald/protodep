@@ -30,7 +30,6 @@ type AuthProviderHTTPS struct {
 }
 
 func NewHTTPSAuthProvider(username, password string) AuthProvider {
-	logger.Info("use HTTP/HTTPS protocol")
 	return &AuthProviderHTTPS{
 		username: username,
 		password: password,
@@ -38,7 +37,6 @@ func NewHTTPSAuthProvider(username, password string) AuthProvider {
 }
 
 func NewSSHAuthProvider(pemFile, password, port string) AuthProvider {
-	logger.Info("use SSH protocol")
 	return &AuthProviderWithSSH{
 		pemFile:  pemFile,
 		password: password,
@@ -73,15 +71,15 @@ func (p *AuthProviderHTTPS) GetRepositoryURL(repoName string) string {
 	}
 
 	homeDir, _ := os.UserHomeDir()
-	gitConfig := homeDir + "/.git-credentials"
-	if _, err := os.Stat(gitConfig); err != nil {
-		logger.Info("... no git-credentials for repo found")
+	gitCredentials := homeDir + "/.git-credentials"
+	if _, err := os.Stat(gitCredentials); err != nil {
+		logger.Info("... no git-credentials found")
 		return defaultRepo
 	}
 
-	file, err := os.Open(gitConfig)
+	file, err := os.Open(gitCredentials)
 	if err != nil {
-		logger.Error("%v", err)
+		logger.Info("... no git-credentials for repo found")
 		return defaultRepo
 	}
 
