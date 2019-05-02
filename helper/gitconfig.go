@@ -22,10 +22,7 @@ func GitConfig(target string) string {
 	}
 	for _, subsec := range cfg.Section("url").Subsections {
 		if strings.TrimSuffix(subsec.Options.Get("insteadOf"), "/") == target {
-			if strings.HasSuffix(subsec.Name, "/") {
-				return subsec.Name
-			}
-			return subsec.Name + "/"
+			return strings.TrimSuffix(subsec.Name, "/")
 		}
 	}
 	return ""
