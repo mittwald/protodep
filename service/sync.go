@@ -50,7 +50,11 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 	}
 
 	newdeps := make([]dependency.ProtoDepDependency, 0, len(protodep.Dependencies))
-	protodepDir := filepath.Join(s.userHomeDir, ".protodep")
+	var protoDepCachePath string
+	protoDepCachePath = os.Getenv("PROTODEP_CACHE_PATH")
+	if len(protoDepCachePath) == 0 {
+		protoDepCachePath = filepath.Join(s.userHomeDir, ".protodep")
+	}
 
 	outdir := filepath.Join(s.outputRootDir, protodep.ProtoOutdir)
 	if err := os.RemoveAll(outdir); err != nil {
@@ -97,7 +101,7 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 		}
 
 		logger.Info("using %v as authentication for repo %s", reflect.TypeOf(authProvider), dep.Target)
-		gitRepo := repository.NewGitRepository(protodepDir, dep, authProvider)
+		gitRepo := repository.NewGitRepository(protoDepCachePath, dep, authProvider)
 
 		repo, err := gitRepo.Open()
 		if err != nil {
