@@ -36,12 +36,6 @@ var upCmd = &cobra.Command{
 		}
 		logger.Info("force update = %t", isForceUpdate)
 
-		httpsOnly, err := cmd.Flags().GetBool(httpsOnlyFlag)
-		if err != nil {
-			return err
-		}
-		logger.Info("https only = %t", httpsOnly)
-
 		pwd, err := os.Getwd()
 		if err != nil {
 			return err
