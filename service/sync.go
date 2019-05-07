@@ -52,7 +52,7 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 	newdeps := make([]dependency.ProtoDepDependency, 0, len(protodep.Dependencies))
 	var protoDepCachePath string
 	protoDepCachePath = os.Getenv("PROTODEP_CACHE_PATH")
-	if len(protoDepCachePath) == 0 {
+	if len(protoDepCachePath) <= 0 {
 		protoDepCachePath = filepath.Join(s.userHomeDir, ".protodep")
 	}
 
