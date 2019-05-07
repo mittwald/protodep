@@ -3,3 +3,4 @@ protodep
 dist/
 service/protodep.lock
 proto/
+dependency/protodep.lock

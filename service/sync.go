@@ -60,16 +60,33 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 	var authProvider helper.AuthProvider
 	for _, dep := range protodep.Dependencies {
 
-		repoURL, err := url.Parse("https://" + dep.Target)
+		depRepoURL, err := url.Parse(dep.Target)
+		if err != nil {
+			return err
+		}
+		bareDepHostname := depRepoURL.Hostname()
+		bareDepRepoPath := strings.TrimPrefix(depRepoURL.RawPath, "/")
+		bareDepRepo := bareDepHostname + "/" + bareDepRepoPath
+
+		repoURL, err := url.Parse("https://" + bareDepRepo)
 		if err != nil {
 			return err
 		}
 
 		repoHostnameWithScheme := repoURL.Scheme + "://" + repoURL.Hostname()
-		sshGitRepo := helper.GitConfig(repoHostnameWithScheme)
-		if len(sshGitRepo) > 0 {
-			dep.Target = sshGitRepo+repoURL.Path
-			authProvider = s.authProviderSSH
+		rewritedGitRepo := helper.GitConfig(repoHostnameWithScheme)
+		if len(rewritedGitRepo) > 0 {
+			rewritedGitRepoURL, err := url.Parse(rewritedGitRepo)
+			if err != nil {
+				return err
+			}
+
+			dep.Target = rewritedGitRepo + repoURL.Path
+			if rewritedGitRepoURL.Scheme == "ssh" {
+				authProvider = s.authProviderSSH
+			} else {
+				authProvider = s.authProviderHTTPS
+			}
 		} else {
 			authProvider = s.authProviderHTTPS
 		}
@@ -116,7 +133,7 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 		}
 
 		newdeps = append(newdeps, dependency.ProtoDepDependency{
-			Target:   repo.Dep.Target,
+			Target:   bareDepRepo,
 			Branch:   repo.Dep.Branch,
 			Revision: repo.Hash,
 			Path:     repo.Dep.Path,

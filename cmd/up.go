@@ -103,7 +103,6 @@ var upCmd = &cobra.Command{
 
 func initDepCmd() {
 	upCmd.PersistentFlags().BoolP(forceUpdateFlag, "f", false, "update locked file and .proto vendors")
-	upCmd.PersistentFlags().BoolP(httpsOnlyFlag, "o", false, "use https only for downloading dependencies")
 	upCmd.PersistentFlags().StringP(httpsUsernameFlag, "u", "", "set username for https authentication")
 	upCmd.PersistentFlags().StringP(httpsPasswordFlag, "s", "", "set password for https authentication")
 	upCmd.PersistentFlags().StringP(sshIdentityFileFlag, "i", "id_rsa", "set name identity file for ssh-connection")
