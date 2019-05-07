@@ -60,12 +60,14 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 	var authProvider helper.AuthProvider
 	for _, dep := range protodep.Dependencies {
 
-		depRepoURL, err := url.Parse(dep.Target)
+		depRepoURL, err := url.Parse("https://" + dep.Target)
 		if err != nil {
+			logger.Error("failed to parse dep Target '%s'", dep.Target)
 			return err
 		}
+
 		bareDepHostname := depRepoURL.Hostname()
-		bareDepRepoPath := strings.TrimPrefix(depRepoURL.RawPath, "/")
+		bareDepRepoPath := strings.TrimPrefix(depRepoURL.Path, "/")
 		bareDepRepo := bareDepHostname + "/" + bareDepRepoPath
 
 		repoURL, err := url.Parse("https://" + bareDepRepo)
@@ -76,12 +78,15 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 		repoHostnameWithScheme := repoURL.Scheme + "://" + repoURL.Hostname()
 		rewritedGitRepo := helper.GitConfig(repoHostnameWithScheme)
 		if len(rewritedGitRepo) > 0 {
+			logger.Info("found rewrite in gitconfig for '%s' ...", bareDepRepo)
 			rewritedGitRepoURL, err := url.Parse(rewritedGitRepo)
 			if err != nil {
 				return err
 			}
 
 			dep.Target = rewritedGitRepo + repoURL.Path
+			logger.Info("... rewriting to '%s'", dep.Target)
+
 			if rewritedGitRepoURL.Scheme == "ssh" {
 				authProvider = s.authProviderSSH
 			} else {

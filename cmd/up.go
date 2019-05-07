@@ -14,7 +14,6 @@ import (
 
 const (
 	forceUpdateFlag               = "force"
-	httpsOnlyFlag                 = "https-only"
 	httpsUsernameFlag             = "https-username"
 	httpsPasswordFlag             = "https-password"
 	sshIdentityFileFlag           = "ssh-identity-file"
