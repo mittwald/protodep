@@ -77,6 +77,7 @@ func (s *SyncImpl) getSources(gitRepo repository.GitRepository, dep *dependency.
 	sources := make([]protoResource, 0)
 
 	protoRootDir := gitRepo.ProtoRootDir()
+
 	err := filepath.Walk(protoRootDir,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
