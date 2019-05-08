@@ -1,0 +1,20 @@
+proto_outdir = "./proto"
+
+[[dependencies]]
+  target = "github.com/protocolbuffers/protobuf"
+  revision = "ec1a70913e5793a7d0a7b5fbf7e0e4f75409dd41"
+  branch = "master"
+  path = ""
+
+[[dependencies]]
+  target = "github.com/grpc-ecosystem/grpc-gateway"
+  revision = "15c7b2ea9d896c07d9b28eca57050b1ee0aea4d6"
+  branch = ""
+  path = "grpc-gateway/examplepb"
+
+[[dependencies]]
+  target = "github.com/kubernetes/helm"
+  revision = "2106d6c97f466dfa89a83dc6650ad0b5b0b71ae8"
+  branch = ""
+  path = ""
+  ignores = ["./release", "./rudder", "./services", "./version"]
