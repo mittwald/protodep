@@ -47,6 +47,7 @@ func (r *GitHubRepository) Open() (*OpenedRepository, error) {
 
 	revision := r.dep.Revision
 
+
 	reponame := r.dep.Repository()
 	repopath := filepath.Join(r.protodepDir, reponame)
 
