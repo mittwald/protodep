@@ -127,7 +127,7 @@ func (s *SyncImpl) getNewDeps(protodep *dependency.ProtoDep, outdir string) (*[]
 		var authProvider helper.AuthProvider
 
 		repoHostnameWithScheme := repoURL.Scheme + "://" + repoURL.Hostname()
-		rewrittenGitRepo := helper.GitConfig(repoHostnameWithScheme)
+		rewrittenGitRepo,err := helper.GitConfig(repoHostnameWithScheme)
 		if len(rewrittenGitRepo) > 0 {
 			logger.Info("found rewrite in gitconfig for '%s' ...", bareDepRepo)
 			rewrittenGitRepoURL, err := url.Parse(rewrittenGitRepo)
