@@ -98,7 +98,7 @@ func (s *SyncImpl) getSources(gitRepo repository.GitRepository, dep *dependency.
 	return sources, err
 }
 
-func (s *SyncImpl) getAuthProvider(rewrittenGitRepo string, repoURL *url.URL, dep *dependency.ProtoDepDependency, bareDepRepo string) (*helper.AuthProvider, error) {
+func (s *SyncImpl) getAuthProvider(rewrittenGitRepo string, repoURL *url.URL, dep *dependency.ProtoDepDependency, bareDepRepo string) (helper.AuthProvider, error) {
 	var authProvider helper.AuthProvider
 
 	if len(rewrittenGitRepo) > 0 {
@@ -119,7 +119,7 @@ func (s *SyncImpl) getAuthProvider(rewrittenGitRepo string, repoURL *url.URL, de
 	} else {
 		authProvider = s.authProviderHTTPS
 	}
-	return &authProvider, nil
+	return authProvider, nil
 }
 
 func (s *SyncImpl) getNewDeps(protodep *dependency.ProtoDep, outdir string) (*[]dependency.ProtoDepDependency, error) {
@@ -145,6 +145,7 @@ func (s *SyncImpl) getNewDeps(protodep *dependency.ProtoDep, outdir string) (*[]
 		bareDepRepo := bareDepHostname + "/" + bareDepRepoPath
 
 		repoURL, err := url.Parse("https://" + bareDepRepo)
+
 		if err != nil {
 			return nil, err
 		}
@@ -152,13 +153,17 @@ func (s *SyncImpl) getNewDeps(protodep *dependency.ProtoDep, outdir string) (*[]
 		repoHostnameWithScheme := repoURL.Scheme + "://" + repoURL.Hostname()
 		rewrittenGitRepo, err := helper.GitConfig(repoHostnameWithScheme)
 
+		if err != nil {
+			return nil, err
+		}
+
 		authProvider, err := s.getAuthProvider(rewrittenGitRepo, repoURL, &dep, bareDepRepo)
 		if err != nil {
 			return nil, err
 		}
 
-		logger.Info("using %v as authentication for repo %s", reflect.TypeOf(*authProvider), dep.Target)
-		gitRepo := repository.NewGitRepository(protoDepCachePath, dep, *authProvider)
+		logger.Info("using %v as authentication for repo %s", reflect.TypeOf(authProvider), dep.Target)
+		gitRepo := repository.NewGitRepository(protoDepCachePath, dep, authProvider)
 
 		repo, err := gitRepo.Open()
 		if err != nil {
