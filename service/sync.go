@@ -98,6 +98,30 @@ func (s *SyncImpl) getSources(gitRepo repository.GitRepository, dep *dependency.
 	return sources, err
 }
 
+func (s *SyncImpl) getAuthProvider(rewrittenGitRepo string, repoURL *url.URL, dep *dependency.ProtoDepDependency, bareDepRepo string) (*helper.AuthProvider, error) {
+	var authProvider helper.AuthProvider
+
+	if len(rewrittenGitRepo) > 0 {
+		logger.Info("found rewrite in gitconfig for '%s' ...", bareDepRepo)
+		rewrittenGitRepoURL, err := url.Parse(rewrittenGitRepo)
+		if err != nil {
+			return nil, err
+		}
+
+		dep.Target = rewrittenGitRepo + repoURL.Path
+		logger.Info("... rewriting to '%s'", dep.Target)
+
+		if rewrittenGitRepoURL.Scheme == "ssh" {
+			authProvider = s.authProviderSSH
+		} else {
+			authProvider = s.authProviderHTTPS
+		}
+	} else {
+		authProvider = s.authProviderHTTPS
+	}
+	return &authProvider, nil
+}
+
 func (s *SyncImpl) getNewDeps(protodep *dependency.ProtoDep, outdir string) (*[]dependency.ProtoDepDependency, error) {
 
 	newdeps := make([]dependency.ProtoDepDependency, 0, len(protodep.Dependencies))
@@ -124,31 +148,17 @@ func (s *SyncImpl) getNewDeps(protodep *dependency.ProtoDep, outdir string) (*[]
 		if err != nil {
 			return nil, err
 		}
-		var authProvider helper.AuthProvider
 
 		repoHostnameWithScheme := repoURL.Scheme + "://" + repoURL.Hostname()
-		rewrittenGitRepo,err := helper.GitConfig(repoHostnameWithScheme)
-		if len(rewrittenGitRepo) > 0 {
-			logger.Info("found rewrite in gitconfig for '%s' ...", bareDepRepo)
-			rewrittenGitRepoURL, err := url.Parse(rewrittenGitRepo)
-			if err != nil {
-				return nil, err
-			}
+		rewrittenGitRepo, err := helper.GitConfig(repoHostnameWithScheme)
 
-			dep.Target = rewrittenGitRepo + repoURL.Path
-			logger.Info("... rewriting to '%s'", dep.Target)
-
-			if rewrittenGitRepoURL.Scheme == "ssh" {
-				authProvider = s.authProviderSSH
-			} else {
-				authProvider = s.authProviderHTTPS
-			}
-		} else {
-			authProvider = s.authProviderHTTPS
+		authProvider, err := s.getAuthProvider(rewrittenGitRepo, repoURL, &dep, bareDepRepo)
+		if err != nil {
+			return nil, err
 		}
 
-		logger.Info("using %v as authentication for repo %s", reflect.TypeOf(authProvider), dep.Target)
-		gitRepo := repository.NewGitRepository(protoDepCachePath, dep, authProvider)
+		logger.Info("using %v as authentication for repo %s", reflect.TypeOf(*authProvider), dep.Target)
+		gitRepo := repository.NewGitRepository(protoDepCachePath, dep, *authProvider)
 
 		repo, err := gitRepo.Open()
 		if err != nil {

@@ -21,10 +21,6 @@ const (
 	sshPortFlag                   = "ssh-port"
 )
 
-var (
-	authProvider helper.AuthProvider
-)
-
 var upCmd = &cobra.Command{
 	Use:   "up",
 	Short: "Populate .proto vendors existing protodep.toml and lock",
