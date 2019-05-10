@@ -28,18 +28,18 @@ type AuthProviderHTTPS struct {
 	password string
 }
 
-func NewHTTPSAuthProvider(username, password string) AuthProvider {
-	return &AuthProviderHTTPS{
-		username: username,
-		password: password,
-	}
-}
-
 func NewSSHAuthProvider(pemFile, password, port string) AuthProvider {
 	return &AuthProviderWithSSH{
 		pemFile:  pemFile,
 		password: password,
 		port:     port,
+	}
+}
+
+func NewHTTPSAuthProvider(username, password string) AuthProvider {
+	return &AuthProviderHTTPS{
+		username: username,
+		password: password,
 	}
 }
 
@@ -54,11 +54,11 @@ func (p *AuthProviderWithSSH) GetRepositoryURL(repoName string) string {
 }
 
 func (p *AuthProviderWithSSH) AuthMethod() transport.AuthMethod {
-	am, err := ssh.NewPublicKeysFromFile("git", p.pemFile, p.password)
+	method, err := ssh.NewPublicKeysFromFile("git", p.pemFile, p.password)
 	if err != nil {
 		panic(err)
 	}
-	return am
+	return method
 }
 
 func (p *AuthProviderHTTPS) GetRepositoryURL(repoName string) string {
