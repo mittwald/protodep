@@ -77,7 +77,7 @@ func (r *GitHubRepository) fetchRepository(repopath string) (*git.Repository, er
 	return rep, nil
 }
 
-func (r *GitHubRepository) idkWhatThisIsDoingButNowItIsInASeperateFunction(rep *git.Repository, branch string, wt *git.Worktree) (*git.Repository, error) {
+func (r *GitHubRepository) getCommitHashFromBranch(rep *git.Repository, branch string, wt *git.Worktree) (*git.Repository, error) {
 	revision := r.dep.Revision
 	if revision == "" {
 		target, err := rep.Storer.Reference(plumbing.ReferenceName(fmt.Sprintf("refs/remotes/origin/%s", branch)))
@@ -127,7 +127,7 @@ func (r *GitHubRepository) Open() (*OpenedRepository, error) {
 		return nil, errors.Wrap(err, "get worktree is failed")
 	}
 
-	rep, err = r.idkWhatThisIsDoingButNowItIsInASeperateFunction(rep, branch, wt)
+	rep, err = r.getCommitHashFromBranch(rep, branch, wt)
 	if err != nil {
 		return nil, err
 	}
