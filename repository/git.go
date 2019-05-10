@@ -24,6 +24,12 @@ type GitHubRepository struct {
 	authProvider helper.AuthProvider
 }
 
+type OpenedRepository struct {
+	Repository *git.Repository
+	Dep        dependency.ProtoDepDependency
+	Hash       string
+}
+
 func NewGitRepository(protodepDir string, dep dependency.ProtoDepDependency, authProvider helper.AuthProvider) GitRepository {
 	return &GitHubRepository{
 		protodepDir:  protodepDir,
@@ -32,24 +38,8 @@ func NewGitRepository(protodepDir string, dep dependency.ProtoDepDependency, aut
 	}
 }
 
-type OpenedRepository struct {
-	Repository *git.Repository
-	Dep        dependency.ProtoDepDependency
-	Hash       string
-}
-
-func (r *GitHubRepository) Open() (*OpenedRepository, error) {
-
-	branch := "master"
-	if r.dep.Branch != "" {
-		branch = r.dep.Branch
-	}
-
-	revision := r.dep.Revision
-
-
+func (r *GitHubRepository) fetchRepository(repopath string) (*git.Repository, error) {
 	reponame := r.dep.Repository()
-	repopath := filepath.Join(r.protodepDir, reponame)
 
 	var rep *git.Repository
 
@@ -84,12 +74,11 @@ func (r *GitHubRepository) Open() (*OpenedRepository, error) {
 		}
 		spinner.Finish()
 	}
+	return rep, nil
+}
 
-	wt, err := rep.Worktree()
-	if err != nil {
-		return nil, errors.Wrap(err, "get worktree is failed")
-	}
-
+func (r *GitHubRepository) idkWhatThisIsDoingButNowItIsInASeperateFunction(rep *git.Repository, branch string, wt *git.Worktree) (*git.Repository, error) {
+	revision := r.dep.Revision
 	if revision == "" {
 		target, err := rep.Storer.Reference(plumbing.ReferenceName(fmt.Sprintf("refs/remotes/origin/%s", branch)))
 		if err != nil {
@@ -114,6 +103,33 @@ func (r *GitHubRepository) Open() (*OpenedRepository, error) {
 		if err := rep.Storer.SetReference(head); err != nil {
 			return nil, errors.Wrapf(err, "set head to %s is failed", revision)
 		}
+	}
+	return rep, nil
+}
+
+func (r *GitHubRepository) Open() (*OpenedRepository, error) {
+
+	branch := "master"
+	if r.dep.Branch != "" {
+		branch = r.dep.Branch
+	}
+
+	reponame := r.dep.Repository()
+	repopath := filepath.Join(r.protodepDir, reponame)
+
+	rep, err := r.fetchRepository(repopath)
+	if err != nil {
+		return nil, err
+	}
+
+	wt, err := rep.Worktree()
+	if err != nil {
+		return nil, errors.Wrap(err, "get worktree is failed")
+	}
+
+	rep, err = r.idkWhatThisIsDoingButNowItIsInASeperateFunction(rep, branch, wt)
+	if err != nil {
+		return nil, err
 	}
 
 	commiter, err := rep.Log(&git.LogOptions{All: true})

@@ -12,7 +12,7 @@ func GitConfig(target string) (string, error) {
 	target = strings.TrimSuffix(target, "/")
 	cfg := config.New()
 
-	r := *loadGitFileFromHome()
+	r := *loadGitConfigFileFromHome()
 
 	decoder := config.NewDecoder(r)
 	err := decoder.Decode(cfg)
@@ -27,7 +27,26 @@ func GitConfig(target string) (string, error) {
 	return "", err
 }
 
-func loadGitFileFromHome() *io.Reader {
+func loadGitCredentialsFileFromHome() (*io.Reader, error) {
+	homeDir, _ := os.UserHomeDir()
+	gitCredentials := homeDir + "/.git-credentials"
+	if _, err := os.Stat(gitCredentials); err != nil {
+		logger.Info("... no git-credentials found")
+		return nil, err
+	}
+
+	file, err := os.Open(gitCredentials)
+	if err != nil {
+		logger.Info("... no git-credentials for repo found")
+		return nil, err
+	}
+
+	defer file.Close()
+	reader := io.Reader(file)
+	return &reader, nil
+}
+
+func loadGitConfigFileFromHome() *io.Reader {
 	home, err := os.UserHomeDir()
 	r, err := os.Open(home + "/.gitconfig")
 	if err != nil {

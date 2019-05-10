@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/mittwald/protodep/logger"
@@ -70,21 +69,12 @@ func (p *AuthProviderHTTPS) GetRepositoryURL(repoName string) string {
 		return defaultRepo
 	}
 
-	homeDir, _ := os.UserHomeDir()
-	gitCredentials := homeDir + "/.git-credentials"
-	if _, err := os.Stat(gitCredentials); err != nil {
-		logger.Info("... no git-credentials found")
-		return defaultRepo
-	}
-
-	file, err := os.Open(gitCredentials)
+	file, err := loadGitCredentialsFileFromHome()
 	if err != nil {
-		logger.Info("... no git-credentials for repo found")
 		return defaultRepo
 	}
 
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
+	scanner := bufio.NewScanner(*file)
 	for scanner.Scan() {
 		fullCredLine := scanner.Text()
 
