@@ -56,7 +56,10 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 		return err
 	}
 
-	newdeps, _ := s.getNewDeps(protodep, outdir)
+	newdeps, err := s.getNewDeps(protodep, outdir)
+	if err != nil {
+		return err
+	}
 
 	newProtodep := dependency.ProtoDep{
 		ProtoOutdir:  protodep.ProtoOutdir,
@@ -77,6 +80,7 @@ func (s *SyncImpl) getSources(gitRepo repository.GitRepository, dep *dependency.
 	sources := make([]protoResource, 0)
 
 	protoRootDir := gitRepo.ProtoRootDir()
+
 	err := filepath.Walk(protoRootDir,
 		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
@@ -95,6 +99,31 @@ func (s *SyncImpl) getSources(gitRepo repository.GitRepository, dep *dependency.
 			return nil
 		})
 	return sources, err
+}
+
+func (s *SyncImpl) getAuthProvider(rewrittenGitRepo string, repoURL *url.URL, dep *dependency.ProtoDepDependency, bareDepRepo string) (helper.AuthProvider, error) {
+	var authProvider helper.AuthProvider
+
+	if len(rewrittenGitRepo) > 0 {
+		logger.Info("found rewrite in gitconfig for '%s' ...", bareDepRepo)
+		rewrittenGitRepoURL, err := url.Parse(rewrittenGitRepo)
+		if err != nil {
+			return nil, err
+		}
+
+		dep.Target = rewrittenGitRepo + repoURL.Path
+
+		logger.Info("... rewriting to '%s'", dep.Target)
+
+		if rewrittenGitRepoURL.Scheme == "ssh" {
+			authProvider = s.authProviderSSH
+		} else {
+			authProvider = s.authProviderHTTPS
+		}
+	} else {
+		authProvider = s.authProviderHTTPS
+	}
+	return authProvider, nil
 }
 
 func (s *SyncImpl) getNewDeps(protodep *dependency.ProtoDep, outdir string) (*[]dependency.ProtoDepDependency, error) {
@@ -120,30 +149,26 @@ func (s *SyncImpl) getNewDeps(protodep *dependency.ProtoDep, outdir string) (*[]
 		bareDepRepo := bareDepHostname + "/" + bareDepRepoPath
 
 		repoURL, err := url.Parse("https://" + bareDepRepo)
+
 		if err != nil {
 			return nil, err
 		}
-		var authProvider helper.AuthProvider
 
 		repoHostnameWithScheme := repoURL.Scheme + "://" + repoURL.Hostname()
-		rewrittenGitRepo := helper.GitConfig(repoHostnameWithScheme)
-		if len(rewrittenGitRepo) > 0 {
-			logger.Info("found rewrite in gitconfig for '%s' ...", bareDepRepo)
-			rewrittenGitRepoURL, err := url.Parse(rewrittenGitRepo)
-			if err != nil {
-				return nil, err
-			}
 
-			dep.Target = rewrittenGitRepo + repoURL.Path
-			logger.Info("... rewriting to '%s'", dep.Target)
+		r, err := helper.LoadGitConfigFileFromHome()
+		if err != nil {
+			logger.Error("%v", err)
+		}
+		rewrittenGitRepo, err := helper.GitConfig(repoHostnameWithScheme, r)
 
-			if rewrittenGitRepoURL.Scheme == "ssh" {
-				authProvider = s.authProviderSSH
-			} else {
-				authProvider = s.authProviderHTTPS
-			}
-		} else {
-			authProvider = s.authProviderHTTPS
+		if err != nil {
+			return nil, err
+		}
+
+		authProvider, err := s.getAuthProvider(rewrittenGitRepo, repoURL, &dep, bareDepRepo)
+		if err != nil {
+			return nil, err
 		}
 
 		logger.Info("using %v as authentication for repo %s", reflect.TypeOf(authProvider), dep.Target)
