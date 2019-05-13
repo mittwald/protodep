@@ -45,73 +45,44 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 
 	dep := dependency.NewDependency(s.targetDir, forceUpdate)
 	protodep, err := dep.Load()
+
 	if err != nil {
 		return err
 	}
 
-	newdeps := make([]dependency.ProtoDepDependency, 0, len(protodep.Dependencies))
-	var protoDepCachePath string
-	protoDepCachePath = os.Getenv("PROTODEP_CACHE_PATH")
-	if len(protoDepCachePath) <= 0 {
-		protoDepCachePath = filepath.Join(s.userHomeDir, ".protodep")
-	}
-
 	outdir := filepath.Join(s.outputRootDir, protodep.ProtoOutdir)
+
 	if err := os.RemoveAll(outdir); err != nil {
 		return err
 	}
 
-	var authProvider helper.AuthProvider
-	for _, dep := range protodep.Dependencies {
+	newdeps, err := s.getNewDeps(protodep, outdir)
+	if err != nil {
+		return err
+	}
 
-		depRepoURL, err := url.Parse("https://" + dep.Target)
-		if err != nil {
-			logger.Error("failed to parse dep Target '%s'", dep.Target)
+	newProtodep := dependency.ProtoDep{
+		ProtoOutdir:  protodep.ProtoOutdir,
+		Dependencies: *newdeps,
+	}
+
+	if dep.IsNeedWriteLockFile() {
+		if err := helper.WriteToml("protodep.lock", newProtodep); err != nil {
 			return err
 		}
+	}
 
-		bareDepHostname := depRepoURL.Hostname()
-		bareDepRepoPath := strings.TrimPrefix(depRepoURL.Path, "/")
-		bareDepRepo := bareDepHostname + "/" + bareDepRepoPath
+	return nil
+}
 
-		repoURL, err := url.Parse("https://" + bareDepRepo)
-		if err != nil {
-			return err
-		}
+func (s *SyncImpl) getSources(gitRepo repository.GitRepository, dep *dependency.ProtoDepDependency) ([]protoResource, error) {
 
-		repoHostnameWithScheme := repoURL.Scheme + "://" + repoURL.Hostname()
-		rewritedGitRepo := helper.GitConfig(repoHostnameWithScheme)
-		if len(rewritedGitRepo) > 0 {
-			logger.Info("found rewrite in gitconfig for '%s' ...", bareDepRepo)
-			rewritedGitRepoURL, err := url.Parse(rewritedGitRepo)
-			if err != nil {
-				return err
-			}
+	sources := make([]protoResource, 0)
 
-			dep.Target = rewritedGitRepo + repoURL.Path
-			logger.Info("... rewriting to '%s'", dep.Target)
+	protoRootDir := gitRepo.ProtoRootDir()
 
-			if rewritedGitRepoURL.Scheme == "ssh" {
-				authProvider = s.authProviderSSH
-			} else {
-				authProvider = s.authProviderHTTPS
-			}
-		} else {
-			authProvider = s.authProviderHTTPS
-		}
-
-		logger.Info("using %v as authentication for repo %s", reflect.TypeOf(authProvider), dep.Target)
-		gitRepo := repository.NewGitRepository(protoDepCachePath, dep, authProvider)
-
-		repo, err := gitRepo.Open()
-		if err != nil {
-			return err
-		}
-
-		sources := make([]protoResource, 0)
-
-		protoRootDir := gitRepo.ProtoRootDir()
-		_ = filepath.Walk(protoRootDir, func(path string, info os.FileInfo, err error) error {
+	err := filepath.Walk(protoRootDir,
+		func(path string, info os.FileInfo, err error) error {
 			if err != nil {
 				return err
 			}
@@ -127,17 +98,99 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 			}
 			return nil
 		})
+	return sources, err
+}
+
+func (s *SyncImpl) getAuthProvider(rewrittenGitRepo string, repoURL *url.URL, dep *dependency.ProtoDepDependency, bareDepRepo string) (helper.AuthProvider, error) {
+	var authProvider helper.AuthProvider
+
+	if len(rewrittenGitRepo) > 0 {
+		logger.Info("found rewrite in gitconfig for '%s' ...", bareDepRepo)
+		rewrittenGitRepoURL, err := url.Parse(rewrittenGitRepo)
+		if err != nil {
+			return nil, err
+		}
+
+		dep.Target = rewrittenGitRepo + repoURL.Path
+
+		logger.Info("... rewriting to '%s'", dep.Target)
+
+		if rewrittenGitRepoURL.Scheme == "ssh" {
+			authProvider = s.authProviderSSH
+		} else {
+			authProvider = s.authProviderHTTPS
+		}
+	} else {
+		authProvider = s.authProviderHTTPS
+	}
+	return authProvider, nil
+}
+
+func (s *SyncImpl) getNewDeps(protodep *dependency.ProtoDep, outdir string) (*[]dependency.ProtoDepDependency, error) {
+
+	newdeps := make([]dependency.ProtoDepDependency, 0, len(protodep.Dependencies))
+
+	var protoDepCachePath string
+	protoDepCachePath = os.Getenv("PROTODEP_CACHE_PATH")
+	if len(protoDepCachePath) <= 0 {
+		protoDepCachePath = filepath.Join(s.userHomeDir, ".protodep")
+	}
+
+	for _, dep := range protodep.Dependencies {
+
+		depRepoURL, err := url.Parse("https://" + dep.Target)
+		if err != nil {
+			logger.Error("failed to parse dep Target '%s'", dep.Target)
+			return nil, err
+		}
+
+		bareDepHostname := depRepoURL.Hostname()
+		bareDepRepoPath := strings.TrimPrefix(depRepoURL.Path, "/")
+		bareDepRepo := bareDepHostname + "/" + bareDepRepoPath
+
+		repoURL, err := url.Parse("https://" + bareDepRepo)
+
+		if err != nil {
+			return nil, err
+		}
+
+		repoHostnameWithScheme := repoURL.Scheme + "://" + repoURL.Hostname()
+
+		r, err := helper.LoadGitConfigFileFromHome()
+		if err != nil {
+			logger.Error("%v", err)
+		}
+		rewrittenGitRepo, err := helper.GitConfig(repoHostnameWithScheme, r)
+
+		if err != nil {
+			return nil, err
+		}
+
+		authProvider, err := s.getAuthProvider(rewrittenGitRepo, repoURL, &dep, bareDepRepo)
+		if err != nil {
+			return nil, err
+		}
+
+		logger.Info("using %v as authentication for repo %s", reflect.TypeOf(authProvider), dep.Target)
+		gitRepo := repository.NewGitRepository(protoDepCachePath, dep, authProvider)
+
+		repo, err := gitRepo.Open()
+		if err != nil {
+			return nil, err
+		}
+
+		sources, _ := s.getSources(gitRepo, &dep)
 
 		for _, s := range sources {
 			outpath := filepath.Join(outdir, dep.Path, s.relativeDest)
 
 			content, err := ioutil.ReadFile(s.source)
 			if err != nil {
-				return err
+				return nil, err
 			}
 
 			if err := helper.WriteFileWithDirectory(outpath, content, 0644); err != nil {
-				return err
+				return nil, err
 			}
 		}
 
@@ -150,18 +203,7 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 		})
 	}
 
-	newProtodep := dependency.ProtoDep{
-		ProtoOutdir:  protodep.ProtoOutdir,
-		Dependencies: newdeps,
-	}
-
-	if dep.IsNeedWriteLockFile() {
-		if err := helper.WriteToml("protodep.lock", newProtodep); err != nil {
-			return err
-		}
-	}
-
-	return nil
+	return &newdeps, nil
 }
 
 func (s *SyncImpl) isIgnorePath(protoRootDir string, target string, ignores []string) bool {

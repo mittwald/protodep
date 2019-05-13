@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"gopkg.in/src-d/go-git.v4/plumbing/transport/http"
 	"net/url"
-	"os"
 	"strings"
 
 	"github.com/mittwald/protodep/logger"
@@ -29,18 +28,18 @@ type AuthProviderHTTPS struct {
 	password string
 }
 
-func NewHTTPSAuthProvider(username, password string) AuthProvider {
-	return &AuthProviderHTTPS{
-		username: username,
-		password: password,
-	}
-}
-
 func NewSSHAuthProvider(pemFile, password, port string) AuthProvider {
 	return &AuthProviderWithSSH{
 		pemFile:  pemFile,
 		password: password,
 		port:     port,
+	}
+}
+
+func NewHTTPSAuthProvider(username, password string) AuthProvider {
+	return &AuthProviderHTTPS{
+		username: username,
+		password: password,
 	}
 }
 
@@ -55,37 +54,36 @@ func (p *AuthProviderWithSSH) GetRepositoryURL(repoName string) string {
 }
 
 func (p *AuthProviderWithSSH) AuthMethod() transport.AuthMethod {
-	am, err := ssh.NewPublicKeysFromFile("git", p.pemFile, p.password)
+	method, err := ssh.NewPublicKeysFromFile("git", p.pemFile, p.password)
 	if err != nil {
 		panic(err)
 	}
-	return am
+	return method
 }
 
 func (p *AuthProviderHTTPS) GetRepositoryURL(repoName string) string {
+
 	var defaultRepo = fmt.Sprintf("https://%s.git", repoName)
+
+	if strings.Contains(repoName, "https://") {
+		defaultRepo = fmt.Sprintf("%s.git", repoName)
+	}
+
 	repoHostname := strings.Split(repoName, "/")[0]
 
 	if len(p.username) > 0 && len(p.password) > 0 {
 		return defaultRepo
 	}
 
-	homeDir, _ := os.UserHomeDir()
-	gitCredentials := homeDir + "/.git-credentials"
-	if _, err := os.Stat(gitCredentials); err != nil {
-		logger.Info("... no git-credentials found")
-		return defaultRepo
-	}
-
-	file, err := os.Open(gitCredentials)
+	file, err := LoadGitCredentialsFileFromHome()
 	if err != nil {
-		logger.Info("... no git-credentials for repo found")
 		return defaultRepo
 	}
 
-	defer file.Close()
-	scanner := bufio.NewScanner(file)
+	scanner := bufio.NewScanner(*file)
+
 	for scanner.Scan() {
+
 		fullCredLine := scanner.Text()
 
 		splitEntry := strings.Split(fullCredLine, "@")
@@ -104,7 +102,6 @@ func (p *AuthProviderHTTPS) GetRepositoryURL(repoName string) string {
 			logger.Error("%v", err)
 			continue
 		}
-
 		if len(u.User.String()) <= 0 {
 			continue
 		}

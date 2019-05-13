@@ -21,77 +21,100 @@ const (
 	sshPortFlag                   = "ssh-port"
 )
 
-var (
-	authProvider helper.AuthProvider
-)
-
 var upCmd = &cobra.Command{
 	Use:   "up",
 	Short: "Populate .proto vendors existing protodep.toml and lock",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		isForceUpdate, err := cmd.Flags().GetBool(forceUpdateFlag)
+
+		bd, err := getBaseData(cmd)
 		if err != nil {
-			return err
-		}
-		logger.Info("force update = %t", isForceUpdate)
-
-		pwd, err := os.Getwd()
-		if err != nil {
-			return err
-		}
-		logger.Info("current dir is = %s", pwd)
-
-		homeDir, err := homedir.Dir()
-		if err != nil {
-			return err
-		}
-		logger.Info("home dir is = %s", homeDir)
-
-		identityFile, err := cmd.Flags().GetString(sshIdentityFileFlag)
-		if err != nil {
-			return err
+			return nil
 		}
 
-		passphrase, err := cmd.Flags().GetString(sshIdentityFilePassphraseFlag)
-		if err != nil {
-			return err
+		authProviderSSH := helper.NewSSHAuthProvider(bd.idFilePath, bd.passphrase, bd.sshPort)
+		logger.Info("identity file = %s", bd.idFilePath)
+		if bd.passphrase != "" {
+			logger.Info("passphrase = %s", strings.Repeat("x", len(bd.passphrase))) // Do not display the password.
+		}
+		logger.Info("ssh port = %s", bd.sshPort)
+		authProviderHTTPS := helper.NewHTTPSAuthProvider(bd.httpsUsername, bd.httpsPassword)
+		if len(bd.httpsUsername) > 0 && len(bd.httpsPassword) > 0 {
+			logger.Info("https username = %s", bd.httpsUsername)
+			logger.Info("https password = %s", strings.Repeat("x", len(bd.httpsPassword)))
 		}
 
-		idFilePath := filepath.Join(homeDir, ".ssh", identityFile)
-		if _, err := os.Stat(idFilePath); os.IsNotExist(err) {
-			idFilePath = ""
-		}
-
-		sshPort, err := cmd.Flags().GetString(sshPortFlag)
-		if err != nil {
-			return err
-		}
-
-		httpsUsername, err := cmd.Flags().GetString(httpsUsernameFlag)
-		if err != nil {
-			return err
-		}
-
-		httpsPassword, err := cmd.Flags().GetString(httpsPasswordFlag)
-		if err != nil {
-			return err
-		}
-
-		authProviderSSH := helper.NewSSHAuthProvider(idFilePath, passphrase, sshPort)
-		logger.Info("identity file = %s", idFilePath)
-		if passphrase != "" {
-			logger.Info("passphrase = %s", strings.Repeat("x", len(passphrase))) // Do not display the password.
-		}
-		logger.Info("ssh port = %s", sshPort)
-		authProviderHTTPS := helper.NewHTTPSAuthProvider(httpsUsername, httpsPassword)
-		if len(httpsUsername) > 0 && len(httpsPassword) > 0 {
-			logger.Info("https username = %s", httpsUsername)
-			logger.Info("https password = %s", strings.Repeat("x", len(httpsPassword)))
-		}
-
-		updateService := service.NewSync(authProviderSSH, authProviderHTTPS, homeDir, pwd, pwd)
-		return updateService.Resolve(isForceUpdate)
+		updateService := service.NewSync(authProviderSSH, authProviderHTTPS, bd.homeDir, bd.pwd, bd.pwd)
+		return updateService.Resolve(bd.isForceUpdate)
 	},
+}
+
+type baseData struct {
+	isForceUpdate bool
+	pwd           string
+	homeDir       string
+	identityFile  string
+	passphrase    string
+	idFilePath    string
+	sshPort       string
+	httpsUsername string
+	httpsPassword string
+}
+
+func getBaseData(cmd *cobra.Command) (*baseData, error) {
+
+	baseData := &baseData{}
+
+	var err error
+
+	baseData.isForceUpdate, err = cmd.Flags().GetBool(forceUpdateFlag)
+	if err != nil {
+		return nil, err
+	}
+	logger.Info("force update = %t", baseData.isForceUpdate)
+
+	baseData.pwd, err = os.Getwd()
+	if err != nil {
+		return nil, err
+	}
+	logger.Info("current dir is = %s", baseData.pwd)
+
+	baseData.homeDir, err = homedir.Dir()
+	if err != nil {
+		return nil, err
+	}
+	logger.Info("home dir is = %s", baseData.homeDir)
+
+	baseData.identityFile, err = cmd.Flags().GetString(sshIdentityFileFlag)
+	if err != nil {
+		return nil, err
+	}
+
+	baseData.passphrase, err = cmd.Flags().GetString(sshIdentityFilePassphraseFlag)
+	if err != nil {
+		return nil, err
+	}
+
+	baseData.idFilePath = filepath.Join(baseData.homeDir, ".ssh", baseData.identityFile)
+	if _, err := os.Stat(baseData.idFilePath); os.IsNotExist(err) {
+		baseData.idFilePath = ""
+	}
+
+	baseData.sshPort, err = cmd.Flags().GetString(sshPortFlag)
+	if err != nil {
+		return nil, err
+	}
+
+	baseData.httpsUsername, err = cmd.Flags().GetString(httpsUsernameFlag)
+	if err != nil {
+		return nil, err
+	}
+
+	baseData.httpsPassword, err = cmd.Flags().GetString(httpsPasswordFlag)
+	if err != nil {
+		return nil, err
+	}
+
+	return baseData, nil
 }
 
 func initDepCmd() {
