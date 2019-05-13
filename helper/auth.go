@@ -64,7 +64,7 @@ func (p *AuthProviderWithSSH) AuthMethod() transport.AuthMethod {
 func (p *AuthProviderHTTPS) GetRepositoryURL(repoName string) string {
 
 	var defaultRepo = fmt.Sprintf("https://%s.git", repoName)
-	// TODO PLS FIX THE CORRECT WAY
+
 	if strings.Contains(repoName, "https://") {
 		defaultRepo = fmt.Sprintf("%s.git", repoName)
 	}

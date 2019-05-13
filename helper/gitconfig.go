@@ -40,7 +40,7 @@ func LoadGitCredentialsFileFromHome() (*io.Reader, error) {
 	}
 
 	reader := io.Reader(file)
-	defer file.Close()
+
 	return &reader, nil
 }
 
