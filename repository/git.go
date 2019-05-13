@@ -132,12 +132,12 @@ func (r *GitHubRepository) Open() (*OpenedRepository, error) {
 		return nil, err
 	}
 
-	commiter, err := rep.Log(&git.LogOptions{All: true})
+	committer, err := rep.Log(&git.LogOptions{All: true})
 	if err != nil {
 		return nil, errors.Wrap(err, "get commit is failed")
 	}
 
-	current, err := commiter.Next()
+	current, err := committer.Next()
 	if err != nil {
 		return nil, errors.Wrap(err, "get commit current is failed")
 	}

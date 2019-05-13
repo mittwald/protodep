@@ -5,7 +5,9 @@ import (
 	"github.com/mittwald/protodep/helper"
 	"github.com/mittwald/protodep/logger"
 	"github.com/stretchr/testify/assert"
+	"io"
 	"net/url"
+	"strings"
 	"testing"
 )
 
@@ -31,13 +33,63 @@ Target:   bareDepRepo,
 			Ignores:  repo.Dep.Ignores,
 */
 
+func gitConfigReader() *io.Reader {
+
+	str := `
+[color]
+	status = 1
+	log = 1
+	branch = 1
+	diff = auto
+
+[url ""]
+    insteadOf = `
+
+	r := strings.NewReader(str)
+
+	ior := io.Reader(r)
+
+	return &ior
+
+}
+
+func TestGitConfig(t *testing.T) {
+
+	tests := []struct {
+		target            string
+		expectEmptyString bool
+	}{
+		{
+			target:            "https://github.com",
+			expectEmptyString: true,
+		},
+		{
+			target:            "",
+			expectEmptyString: false,
+		},
+	}
+
+	for _, v := range tests {
+		rewrittenGitRepo, err := helper.GitConfig(v.target, gitConfigReader())
+		if err != nil {
+			t.Failed()
+		}
+		assert.IsType(t, "", rewrittenGitRepo, "Idk, just fk tests i guess")
+		if !v.expectEmptyString {
+			assert.True(t, len(rewrittenGitRepo) > 0, "string is empty")
+
+		}
+	}
+
+}
+
 func TestGetAuthProvider(t *testing.T) {
 
 	dep := dependency.ProtoDepDependency{
-		Target:   `target="ply.github.come736765"\n`,
-		Revision: `revision="ec1a70913e5793a7d0a7b5fbf7e0e4f75409dd41"\n`,
-		Branch:   `branch="master"\n`,
-		Path:     `path=""\n`,
+		Target:   "",
+		Revision: `revision="ec1a70913e5793a7d0a7b5fbf7e0e4f75409dd41"`,
+		Branch:   `branch="master"`,
+		Path:     `path=""`,
 		Ignores:  nil,
 	}
 
@@ -112,7 +164,6 @@ func TestGetAuthProvider(t *testing.T) {
 
 		switch p := (provider).(type) {
 		case *helper.AuthProviderHTTPS:
-			logger.Info("%#v", p)
 			assert.IsType(t, v.typ, p, "REEE")
 		case *helper.AuthProviderWithSSH:
 			logger.Info("%#v", p)

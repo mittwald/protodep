@@ -62,20 +62,28 @@ func (p *AuthProviderWithSSH) AuthMethod() transport.AuthMethod {
 }
 
 func (p *AuthProviderHTTPS) GetRepositoryURL(repoName string) string {
+
 	var defaultRepo = fmt.Sprintf("https://%s.git", repoName)
+	// TODO PLS FIX THE CORRECT WAY
+	if strings.Contains(repoName, "https://") {
+		defaultRepo = fmt.Sprintf("%s.git", repoName)
+	}
+
 	repoHostname := strings.Split(repoName, "/")[0]
 
 	if len(p.username) > 0 && len(p.password) > 0 {
 		return defaultRepo
 	}
 
-	file, err := loadGitCredentialsFileFromHome()
+	file, err := LoadGitCredentialsFileFromHome()
 	if err != nil {
 		return defaultRepo
 	}
 
 	scanner := bufio.NewScanner(*file)
+
 	for scanner.Scan() {
+
 		fullCredLine := scanner.Text()
 
 		splitEntry := strings.Split(fullCredLine, "@")
@@ -94,7 +102,6 @@ func (p *AuthProviderHTTPS) GetRepositoryURL(repoName string) string {
 			logger.Error("%v", err)
 			continue
 		}
-
 		if len(u.User.String()) <= 0 {
 			continue
 		}

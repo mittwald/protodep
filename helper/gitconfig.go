@@ -8,17 +8,12 @@ import (
 	"strings"
 )
 
-func GitConfig(target string) (string, error) {
+func GitConfig(target string, r *io.Reader) (string, error) {
 	target = strings.TrimSuffix(target, "/")
 	cfg := config.New()
 
-	r, err := loadGitConfigFileFromHome()
-	if err != nil {
-		logger.Error("%v", err)
-	}
-
 	decoder := config.NewDecoder(*r)
-	err = decoder.Decode(cfg)
+	err := decoder.Decode(cfg)
 	if err != nil {
 		logger.Error("%v", err)
 	}
@@ -30,7 +25,7 @@ func GitConfig(target string) (string, error) {
 	return "", err
 }
 
-func loadGitCredentialsFileFromHome() (*io.Reader, error) {
+func LoadGitCredentialsFileFromHome() (*io.Reader, error) {
 	homeDir, _ := os.UserHomeDir()
 	gitCredentials := homeDir + "/.git-credentials"
 	if _, err := os.Stat(gitCredentials); err != nil {
@@ -44,12 +39,12 @@ func loadGitCredentialsFileFromHome() (*io.Reader, error) {
 		return nil, err
 	}
 
-	defer file.Close()
 	reader := io.Reader(file)
+	defer file.Close()
 	return &reader, nil
 }
 
-func loadGitConfigFileFromHome() (*io.Reader, error) {
+func LoadGitConfigFileFromHome() (*io.Reader, error) {
 	home, err := os.UserHomeDir()
 	r, err := os.Open(home + "/.gitconfig")
 	if err != nil {

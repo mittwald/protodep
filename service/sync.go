@@ -56,7 +56,10 @@ func (s *SyncImpl) Resolve(forceUpdate bool) error {
 		return err
 	}
 
-	newdeps, _ := s.getNewDeps(protodep, outdir)
+	newdeps, err := s.getNewDeps(protodep, outdir)
+	if err != nil {
+		return err
+	}
 
 	newProtodep := dependency.ProtoDep{
 		ProtoOutdir:  protodep.ProtoOutdir,
@@ -109,6 +112,7 @@ func (s *SyncImpl) getAuthProvider(rewrittenGitRepo string, repoURL *url.URL, de
 		}
 
 		dep.Target = rewrittenGitRepo + repoURL.Path
+
 		logger.Info("... rewriting to '%s'", dep.Target)
 
 		if rewrittenGitRepoURL.Scheme == "ssh" {
@@ -151,7 +155,12 @@ func (s *SyncImpl) getNewDeps(protodep *dependency.ProtoDep, outdir string) (*[]
 		}
 
 		repoHostnameWithScheme := repoURL.Scheme + "://" + repoURL.Hostname()
-		rewrittenGitRepo, err := helper.GitConfig(repoHostnameWithScheme)
+
+		r, err := helper.LoadGitConfigFileFromHome()
+		if err != nil {
+			logger.Error("%v", err)
+		}
+		rewrittenGitRepo, err := helper.GitConfig(repoHostnameWithScheme, r)
 
 		if err != nil {
 			return nil, err
