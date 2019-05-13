@@ -45,4 +45,5 @@ func init() {
 }
 
 func initConfig() {
+	//
 }
