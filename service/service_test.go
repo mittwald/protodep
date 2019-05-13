@@ -3,35 +3,12 @@ package service
 import (
 	"github.com/mittwald/protodep/dependency"
 	"github.com/mittwald/protodep/helper"
-	"github.com/mittwald/protodep/logger"
 	"github.com/stretchr/testify/assert"
 	"io"
 	"net/url"
 	"strings"
 	"testing"
 )
-
-// func (s *SyncImpl) getAuthProvider
-// (rewrittenGitRepo string, repoURL *url.URL, dep *dependency.ProtoDepDependency, bareDepRepo string)
-// (*helper.AuthProvider, error) {
-
-/*
-type ProtoDepDependency struct {
-	Target   string   `toml:"target"`
-	Revision string   `toml:"revision"`
-	Branch   string   `toml:"branch"`
-	Path     string   `toml:"path"`
-	Ignores  []string `toml:"ignores"`
-}
-*/
-
-/*
-Target:   bareDepRepo,
-			Branch:   repo.Dep.Branch,
-			Revision: repo.Hash,
-			Path:     repo.Dep.Path,
-			Ignores:  repo.Dep.Ignores,
-*/
 
 func gitConfigReader() *io.Reader {
 
@@ -42,8 +19,8 @@ func gitConfigReader() *io.Reader {
 	branch = 1
 	diff = auto
 
-[url ""]
-    insteadOf = `
+[url "https://user:password@github.com/"]
+    insteadOf = https://github.com/`
 
 	r := strings.NewReader(str)
 
@@ -61,11 +38,11 @@ func TestGitConfig(t *testing.T) {
 	}{
 		{
 			target:            "https://github.com",
-			expectEmptyString: true,
+			expectEmptyString: false,
 		},
 		{
-			target:            "",
-			expectEmptyString: false,
+			target:            "https://gitlab.com",
+			expectEmptyString: true,
 		},
 	}
 
@@ -74,7 +51,9 @@ func TestGitConfig(t *testing.T) {
 		if err != nil {
 			t.Failed()
 		}
+
 		assert.IsType(t, "", rewrittenGitRepo, "Idk, just fk tests i guess")
+
 		if !v.expectEmptyString {
 			assert.True(t, len(rewrittenGitRepo) > 0, "string is empty")
 
@@ -153,21 +132,18 @@ func TestGetAuthProvider(t *testing.T) {
 		"",
 	}
 
-	for i, v := range tests {
+	for _, v := range tests {
 		provider, err := s.getAuthProvider(v.rewrittenGitRepo, v.repoURL, v.dep, v.bareDepRepo)
 		if err != nil {
 			t.Error(err)
 			t.Failed()
 		}
 
-		t.Log("Test nr.", i, "Provider :", provider, "Error:", err)
-
 		switch p := (provider).(type) {
 		case *helper.AuthProviderHTTPS:
-			assert.IsType(t, v.typ, p, "REEE")
+			assert.IsType(t, v.typ, p, "didnt get the correct provider")
 		case *helper.AuthProviderWithSSH:
-			logger.Info("%#v", p)
-			assert.IsType(t, v.typ, p, "REEE")
+			assert.IsType(t, v.typ, p, "didnt get the correct provider")
 		default:
 			t.Log(p)
 			t.Failed()
