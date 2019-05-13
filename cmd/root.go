@@ -45,5 +45,4 @@ func init() {
 }
 
 func initConfig() {
-	// ?????
 }
