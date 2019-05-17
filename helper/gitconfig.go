@@ -8,6 +8,7 @@ import (
 	"strings"
 )
 
+
 func GitConfig(target string, r *io.Reader) ([]string, error) {
 	target = strings.TrimSuffix(target, "/")
 	cfg := config.New()
