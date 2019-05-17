@@ -8,9 +8,10 @@ import (
 	"strings"
 )
 
-func GitConfig(target string, r *io.Reader) (string, error) {
+func GitConfig(target string, r *io.Reader) ([]string, error) {
 	target = strings.TrimSuffix(target, "/")
 	cfg := config.New()
+	var rewrites []string
 
 	decoder := config.NewDecoder(*r)
 	err := decoder.Decode(cfg)
@@ -19,10 +20,10 @@ func GitConfig(target string, r *io.Reader) (string, error) {
 	}
 	for _, subsec := range cfg.Section("url").Subsections {
 		if strings.TrimSuffix(subsec.Options.Get("insteadOf"), "/") == target {
-			return strings.TrimSuffix(subsec.Name, "/"), nil
+			rewrites = append(rewrites, strings.TrimSuffix(subsec.Name, "/"))
 		}
 	}
-	return "", err
+	return rewrites, err
 }
 
 func LoadGitCredentialsFileFromHome() (*io.Reader, error) {

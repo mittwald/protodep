@@ -106,6 +106,13 @@ func (s *SyncImpl) getAuthProvider(rewrittenGitRepo string, repoURL *url.URL, de
 
 	if len(rewrittenGitRepo) > 0 {
 		logger.Info("found rewrite in gitconfig for '%s' ...", bareDepRepo)
+
+		// port := strings.Split(rewrittenGitRepo, ":")[1]
+
+		// if len(port) > 0 {
+		// 	rewrittenGitRepo = rewrittenGitRepo[0:strings.Index(rewrittenGitRepo, ":")]
+		// }
+
 		rewrittenGitRepoURL, err := url.Parse(rewrittenGitRepo)
 		if err != nil {
 			return nil, err
@@ -160,15 +167,24 @@ func (s *SyncImpl) getNewDeps(protodep *dependency.ProtoDep, outdir string) (*[]
 		if err != nil {
 			logger.Error("%v", err)
 		}
-		rewrittenGitRepo, err := helper.GitConfig(repoHostnameWithScheme, r)
-
+		rewrittenGitRepos, err := helper.GitConfig(repoHostnameWithScheme, r)
 		if err != nil {
 			return nil, err
 		}
 
-		authProvider, err := s.getAuthProvider(rewrittenGitRepo, repoURL, &dep, bareDepRepo)
-		if err != nil {
-			return nil, err
+		var authProvider helper.AuthProvider
+		for i, v := range rewrittenGitRepos {
+			authProvider, err = s.getAuthProvider(v, repoURL, &dep, bareDepRepo)
+			if err != nil {
+				logger.Info("Try %d failed : %s", i+1, v)
+				continue
+			}
+		}
+		if authProvider == nil {
+			authProvider, err = s.getAuthProvider("", repoURL, &dep, bareDepRepo)
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		logger.Info("using %v as authentication for repo %s", reflect.TypeOf(authProvider), dep.Target)
