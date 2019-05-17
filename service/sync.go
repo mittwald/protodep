@@ -176,14 +176,8 @@ func (s *SyncImpl) getNewDeps(protodep *dependency.ProtoDep, outdir string) (*[]
 		for i, v := range rewrittenGitRepos {
 			authProvider, err = s.getAuthProvider(v, repoURL, &dep, bareDepRepo)
 			if err != nil {
-				logger.Info("Try %d failed : %s", i+1, v)
+				logger.Info("Try %d failed : %s", i, v)
 				continue
-			}
-		}
-		if authProvider == nil {
-			authProvider, err = s.getAuthProvider("", repoURL, &dep, bareDepRepo)
-			if err != nil {
-				return nil, err
 			}
 		}
 

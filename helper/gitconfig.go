@@ -11,7 +11,7 @@ import (
 func GitConfig(target string, r *io.Reader) ([]string, error) {
 	target = strings.TrimSuffix(target, "/")
 	cfg := config.New()
-	var rewrites []string
+	rewrites := []string{""}
 
 	decoder := config.NewDecoder(*r)
 	err := decoder.Decode(cfg)
