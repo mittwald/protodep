@@ -106,13 +106,6 @@ func (s *SyncImpl) getAuthProvider(rewrittenGitRepo string, repoURL *url.URL, de
 
 	if len(rewrittenGitRepo) > 0 {
 		logger.Info("found rewrite in gitconfig for '%s' ...", bareDepRepo)
-
-		// port := strings.Split(rewrittenGitRepo, ":")[1]
-
-		// if len(port) > 0 {
-		// 	rewrittenGitRepo = rewrittenGitRepo[0:strings.Index(rewrittenGitRepo, ":")]
-		// }
-
 		rewrittenGitRepoURL, err := url.Parse(rewrittenGitRepo)
 		if err != nil {
 			return nil, err
