@@ -52,7 +52,7 @@ func TestGitConfig(t *testing.T) {
 			t.Failed()
 		}
 
-		assert.IsType(t, "", rewrittenGitRepo, "Idk, just fk tests i guess")
+		assert.IsType(t, []string{}, rewrittenGitRepo, "Idk, just fk tests i guess")
 
 		if !v.expectEmptyString {
 			assert.True(t, len(rewrittenGitRepo) > 0, "string is empty")
