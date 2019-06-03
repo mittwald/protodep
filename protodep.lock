@@ -2,15 +2,19 @@ proto_outdir = "./proto"
 
 [[dependencies]]
   target = "gitlab.mittwald.it/coab-0x7e7/tools/protoc-gen-eventsourcing-metadata"
-  revision = "v0.3.0"
+  revision = "cadad8ee4bb662d98c6c0bf75d3e0fb07cac917f"
+  branch = ""
   path = "protoc-gen-eventsourcing-metadata"
 
 [[dependencies]]
   target = "github.com/grpc-ecosystem/grpc-gateway"
-  revision = "v1.2.2"
+  revision = "e6f18d33a7b3bfa5b94f3d5fb513252184ce2d90"
+  branch = ""
   path = "grpc-gateway/examplepb"
 
 [[dependencies]]
   target = "github.com/kubernetes/helm"
-  revision = "v2.8.1"
+  revision = "500f46bd62ab25b48032caffa17d6dfdec86b2be"
+  branch = ""
+  path = ""
   ignores = ["./release", "./rudder", "./services", "./version"]

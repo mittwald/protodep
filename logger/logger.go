@@ -2,6 +2,7 @@ package logger
 
 import (
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -23,6 +24,19 @@ type spinnerWrapper struct {
 func (s *spinnerWrapper) Finish() {
 	s.Stop()
 	fmt.Print("\n")
+}
+
+func CensorHttpsPassword(url string) string {
+	path := strings.Split(url, "@")
+
+	if len(path) == 1 {
+		return url
+	}
+	cred := strings.Split(path[0], ":")
+	cred[2] = "xxxxxx"
+	compCred := strings.Join(cred, ":")
+
+	return compCred + "@" + path[1]
 }
 
 func InfoWithSpinner(format string, a ...interface{}) *spinnerWrapper {
