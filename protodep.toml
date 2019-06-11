@@ -1,9 +1,8 @@
 proto_outdir = "./proto"
 
 [[dependencies]]
-  target = "gitlab.mittwald.it/coab-0x7e7/tools/protoc-gen-eventsourcing-metadata"
-  revision = "v0.3.0"
-  path = "protoc-gen-eventsourcing-metadata"
+  target = "github.com/protocolbuffers/protobuf"
+  branch = "master"
 
 [[dependencies]]
   target = "github.com/grpc-ecosystem/grpc-gateway"
