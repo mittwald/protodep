@@ -113,7 +113,7 @@ func (s *SyncImpl) getAuthProvider(rewrittenGitRepo string, repoURL *url.URL, de
 
 		dep.Target = rewrittenGitRepo + repoURL.Path
 
-		logger.Info("... rewriting to '%s'", dep.Target)
+		logger.Info("... rewriting to '%s'", logger.CensorHttpsPassword(dep.Target))
 
 		if rewrittenGitRepoURL.Scheme == "ssh" {
 			authProvider = s.authProviderSSH
@@ -140,7 +140,7 @@ func (s *SyncImpl) getNewDeps(protodep *dependency.ProtoDep, outdir string) (*[]
 
 		depRepoURL, err := url.Parse("https://" + dep.Target)
 		if err != nil {
-			logger.Error("failed to parse dep Target '%s'", dep.Target)
+			logger.Error("failed to parse dep Target '%s'", logger.CensorHttpsPassword(dep.Target))
 			return nil, err
 		}
 
@@ -174,7 +174,7 @@ func (s *SyncImpl) getNewDeps(protodep *dependency.ProtoDep, outdir string) (*[]
 			}
 		}
 
-		logger.Info("using %v as authentication for repo %s", reflect.TypeOf(authProvider), dep.Target)
+		logger.Info("using %v as authentication for repo %s", reflect.TypeOf(authProvider), logger.CensorHttpsPassword(dep.Target))
 		gitRepo := repository.NewGitRepository(protoDepCachePath, dep, authProvider)
 
 		repo, err := gitRepo.Open()
@@ -186,7 +186,6 @@ func (s *SyncImpl) getNewDeps(protodep *dependency.ProtoDep, outdir string) (*[]
 
 		for _, s := range sources {
 			outpath := filepath.Join(outdir, dep.Path, s.relativeDest)
-
 			content, err := ioutil.ReadFile(s.source)
 			if err != nil {
 				return nil, err

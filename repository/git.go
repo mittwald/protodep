@@ -44,9 +44,10 @@ func (r *GitHubRepository) fetchRepository(repopath string) (*git.Repository, er
 	var rep *git.Repository
 
 	if stat, err := os.Stat(repopath); err == nil && stat.IsDir() {
-		spinner := logger.InfoWithSpinner("Getting in existing dir %s ", reponame)
+		spinner := logger.InfoWithSpinner("Getting in existing dir %s ", logger.CensorHttpsPassword(reponame))
 
 		rep, err = git.PlainOpen(repopath)
+
 		if err != nil {
 			return nil, errors.Wrap(err, "open repository is failed")
 		}
@@ -64,7 +65,7 @@ func (r *GitHubRepository) fetchRepository(repopath string) (*git.Repository, er
 		spinner.Finish()
 
 	} else {
-		spinner := logger.InfoWithSpinner("Getting new Repo %s ", reponame)
+		spinner := logger.InfoWithSpinner("Getting new Repo %s ", logger.CensorHttpsPassword(reponame))
 		rep, err = git.PlainClone(repopath, false, &git.CloneOptions{
 			Auth: r.authProvider.AuthMethod(),
 			URL:  r.authProvider.GetRepositoryURL(reponame),
@@ -115,7 +116,7 @@ func (r *GitHubRepository) Open() (*OpenedRepository, error) {
 	}
 
 	reponame := r.dep.Repository()
-	repopath := filepath.Join(r.protodepDir, reponame)
+	repopath := filepath.Join(r.protodepDir, logger.CensorHttpsPassword(reponame))
 
 	rep, err := r.fetchRepository(repopath)
 	if err != nil {
