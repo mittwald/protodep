@@ -16,6 +16,7 @@ env:
     - GO_VERSION=1.12
     - secure: "SB7DKQgTBoqU+Jfc83y4n/H2NES/PrGD+7UCYy69lXyK354WKWTxtvHrEkecga0UiJAI9v1diwZiu5YEiJ0nLuk5vh9Jq9I47n7Y5sTRECn3h2UhqnuoVTGeULOKtAuRHlAZ+JG1eC9MsqG7SpENnS7HMJepoNfZZ7WrSPNVOE5GFR7ErdhR/tBahWPbXuAbtjhKdS6/LEsoxWf3aJAF98UEbEOYR8kXkUcXtdF5C6UX4R+X+5C+mU/JHTHK9dEpJehz2XSSAxsTY9ORvKPuL+JF2M2SoC2yTntZ7TBBiWsuwqszG4f33qk4p8H87tZjoHJiJpnN4hJBw8hL18+SrFM7adU1QcmKK+/iNMU2HO5KilAPleFKXhUX356sGvk8pXoqZEGvAAtzNr+Fwqwtpe+Df+fYzimHp2a0wqaIq6kf66CGlDLv6hKy10nh36Y2Wh3KHEywrbJEurXEOomtvy5p4o88wpv5PD5Q1mZZP2HxCdzaKAbyk/4UJ0BElbVwkUW38s5McWGUZxCSlURc9xrRoCWo2Kx4mn+29GEer8JNIzFzR8k6Slh+K1tGrzuUiG0gl7dt0UY+Ij+NbBSTnMDg3A3XnAOajolYdqQstVlFxhXJ+7MgCyk24Ksm2uAv6Z1n94FgPWBP249Za/WORwkzyILlD8CZHULtn9qMB74="
 script:
+  - go test ./...
   - curl -sL https://git.io/goreleaser | bash -s -- --snapshot --skip-publish --rm-dist
 
 deploy:
