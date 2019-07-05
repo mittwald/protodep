@@ -2,7 +2,7 @@ package logger
 
 import (
 	"fmt"
-	"strings"
+	"net/url"
 	"time"
 
 	"github.com/briandowns/spinner"
@@ -26,17 +26,20 @@ func (s *spinnerWrapper) Finish() {
 	fmt.Print("\n")
 }
 
-func CensorHttpsPassword(url string) string {
-	path := strings.Split(url, "@")
-
-	if len(path) == 1 {
-		return url
+func CensorHttpsPassword(repoURL string) string {
+	parsed, err := url.Parse(repoURL)
+	if err != nil {
+		return fmt.Sprintf("<invalid url: %s>", err.Error())
 	}
-	cred := strings.Split(path[0], ":")
-	cred[2] = "xxxxxx"
-	compCred := strings.Join(cred, ":")
 
-	return compCred + "@" + path[1]
+	if parsed.User != nil {
+		_, pwdSet := parsed.User.Password()
+		if pwdSet {
+			parsed.User = url.UserPassword(parsed.User.Username(), "REDACTED")
+		}
+	}
+
+	return parsed.String()
 }
 
 func InfoWithSpinner(format string, a ...interface{}) *spinnerWrapper {
